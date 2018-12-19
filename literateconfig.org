@@ -1,0 +1,449 @@
+#+TITLE: Emacs Literate Configuration
+#+AUTHOR: Ari Kahn
+#+PROPERTY: header-args :tangle yes
+* Configuration
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+
+* Table of Contents :TOC_3_gh:
+- [[#configuration][Configuration]]
+- [[#documentation][Documentation]]
+  - [[#useful-examples][Useful Examples]]
+  - [[#package-configuration][Package configuration]]
+- [[#personal-information][Personal Information]]
+- [[#emacs-initialization][Emacs Initialization]]
+  - [[#initialize-package-management][Initialize Package Management]]
+  - [[#use-better-defaults][Use better defaults]]
+  - [[#load-customel][load custom.el]]
+- [[#packages][Packages]]
+  - [[#org][Org]]
+  - [[#toc-org][Toc-org]]
+  - [[#org-ref][org-ref]]
+  - [[#markdown][Markdown]]
+  - [[#evil][Evil]]
+  - [[#helm][Helm]]
+  - [[#dashboard][Dashboard]]
+  - [[#projectile][Projectile]]
+  - [[#purpose][Purpose]]
+  - [[#window-management][Window Management]]
+  - [[#magit][Magit]]
+- [[#theming][Theming]]
+- [[#navigation][Navigation]]
+- [[#misc-functions][Misc Functions]]
+  - [[#drag-and-drop-files][Drag and Drop files]]
+- [[#keybindings][Keybindings]]
+
+* Documentation
+** Useful Examples
+https://github.com/gilbertw1/emacs-literate-starter
+
+https://github.com/angrybacon/dotemacs
+
+** Package configuration
+Basic example:
+
+ensure: Install the package if it doesn't exist yet
+pin: Specify a particular repository to use for a package
+* Personal Information
+#+BEGIN_SRC emacs-lisp
+  (setq user-full-name "Ari Kahn"
+	user-mail-address "ariekahn@gmail.com")
+#+END_SRC
+* Emacs Initialization      
+  Disable some byte-compile warnings that get annoying
+#+BEGIN_SRC emacs-lisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+#+END_SRC
+
+** Initialize Package Management
+Next we are going to require =package.el= and add our additional package archives, 'melpa' and 'org'.
+Afterwards we need to initialize our packages and then ensure that =use-package= is installed, which
+we promptly install if it's missing. Finally we load =use-package= and tell it to always install any
+missing packages.
+
+Note that this entire block is wrapped in =eval-when-compile=. The effect of this is to perform all
+of the package initialization during compilation so that when byte compiled, all of this time consuming
+code is skipped. This can be done because the result of byte compiling =use-package= statements results
+in the macro being fully expanded at which point =use-package= isn't actually required any longer.
+
+Since the code is automatically compiled during runtime, if the configuration hasn't already been
+previously compiled manually then all of the package initialization will still take place at startup.
+
+#+BEGIN_SRC emacs-lisp
+  (eval-when-compile
+    (require 'package)
+
+    (unless (assoc-default "melpa" package-archives)
+      (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
+    (unless (assoc-default "org" package-archives)
+      (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t))
+
+    ;(package-initialize)
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))
+    (require 'use-package)
+    (setq use-package-always-ensure t))
+#+END_SRC
+** Use better defaults
+
+Some UI elements are rather invasive.
+
+#+BEGIN_SRC emacs-lisp
+  (when window-system
+    (blink-cursor-mode 0)                           ; Disable the cursor blinking
+    (scroll-bar-mode 0)                             ; Disable the scroll bar
+    (tool-bar-mode 0)                               ; Disable the tool bar
+    (tooltip-mode 0))                               ; Disable the tooltips
+#+END_SRC
+
+We don't want autosave files cluttering everything up.
+
+Instead, we'll have emacs store them in the =tmp= directory.
+
+#+BEGIN_SRC emacs-lisp
+  ;; store all backup and autosave files in the tmp dir
+  (setq backup-directory-alist
+	`((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+	`((".*" ,temporary-file-directory t)))
+
+  ;; And modify how emacs names and holds onto them
+  (setq
+     backup-by-copying t      ; don't clobber symlinks
+     delete-old-versions t
+     kept-new-versions 6
+     kept-old-versions 2
+     version-control t)       ; use versioned backups
+#+END_SRC
+
+** load custom.el
+
+We don't want customizations to clutter up =init.el=.
+Instead, let's put them in =custom.el=, and load them separately here.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
+  (when (file-exists-p custom-file)
+    (load custom-file))
+#+END_SRC
+
+* Packages
+** Org
+This is going to be a big one.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+   :ensure org-plus-contrib
+   :pin org
+   :defer t)
+
+  ;; Ensure ELPA org is prioritized above built-in org.
+  (require 'cl)
+  (setq load-path (remove-if (lambda (x) (string-match-p "org$" x)) load-path))
+
+  (global-set-key (kbd "C-c c") 'org-capture)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  ;; Org-agenda
+  (setq org-agenda-files (list
+                      "~/Dropbox/org/weekly-plan.org"
+                      "~/Dropbox/org/meetings-dani.org"
+                      "~/Dropbox/org/todo.org"))
+  ;; org-agenda messes up window setups. Have it keep the same window.
+  (setq org-agenda-window-setup 'current-window)
+
+  ;; Indent based on header level
+  (setq org-indent-mode t)
+#+END_SRC
+
+M-RET splits the current line by default. This gets really annoying after a while.
+
+ #+BEGIN_SRC emacs-lisp
+   (setq org-M-RET-may-split-line nil)
+ #+END_SRC
+
+We're going to add some custom views into org-agenda.
+
+This first one just shows a combined view of our scheduled and full todo list
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-agenda-custom-commands
+	'(("c" "Simple agenda view"
+	   ((agenda "")
+	    (alltodo "")))))
+#+END_SRC
+
+Our setup for TODO items:
+#+BEGIN_SRC emacs-lisp
+  ;; Create a ‘CLOSED: [timestamp]’ line when we finish an item
+  (setq org-log-done 'time)
+#+END_SRC 
+** Toc-org
+ Let's set up =toc-org= after the org package. We also want to enable it when
+ we initialize org-mode so we get an up-to-date toc.
+ #+BEGIN_SRC emacs-lisp
+ (use-package toc-org
+   :after org
+   :ensure t
+   :init (add-hook 'org-mode-hook #'toc-org-enable))
+ #+END_SRC
+** org-ref
+
+Basic usage: http://kitchingroup.cheme.cmu.edu/blog/2014/05/13/Using-org-ref-for-citations-and-references/
+
+helm-ref provides the backend that allows searching through and interfacint with a bibtex file.
+helm-ref is built on top of bibtex-completion.
+See https://github.com/tmalsburg/helm-bibtex
+
+Here we're using a library file that's generated by Mendeley, so if we want to add a PDF we should be doing it through mendeley.
+
+Note there are a couple main commands.
+By default, <C-c ]> is bound to org-ref-helm-insert-cite-link,
+which is a fancy script around =helm-bibtex= where we possibly choose our bibliography
+
+#+BEGIN_SRC emacs-lisp
+  (setq reftex-default-bibliography '("/Users/ari/Dropbox/Mendeley/library.bib"))
+  (setq org-ref-default-bibliography '("/Users/ari/Dropbox/Mendeley/library.bib")
+        org-ref-pdf-directory "/Users/ari/Dropbox/Papers/"
+        org-ref-bibliography-notes "/Users/ari/Dropbox/org/notes.org")
+
+  ;; For helm
+  (setq bibtex-completion-bibliography "/Users/ari/Dropbox/Mendeley/library.bib"
+	bibtex-completion-library-path "/Users/ari/Dropbox/Papers"
+	bibtex-completion-notes-path "/Users/ari/Dropbox/org/notes.org")
+
+  ;; Tell it to use the field Mendeley is populating
+  (setq bibtex-completion-pdf-field "file")
+  ;; open pdf with system pdf viewer (works on mac)
+  ;; (setq bibtex-completion-pdf-open-function
+  ;;   (lambda (fpath)
+  ;;     (start-process "open" "*open*" "open" fpath)))
+
+  ;; Set org-ref to use a function that can get the right field, in this case helm-bibtex
+  (setq org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex)
+
+  ;; Specify the backend we want to use out of helm/ivy/reftex
+  (setq org-ref-completion-library 'org-ref-helm-bibtex)
+
+  (use-package org-ref
+    :ensure t)
+#+END_SRC
+** Markdown
+Obviously we want prettier support for markdown documents.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :commands (markdown-mode gfm-mode)
+    :mode (("README\\.md\\'" . gfm-mode) ; Git-flavor
+	   ("\\.md\\'" . markdown-mode)
+	   ("\\.markdown\\'" . markdown-mode))
+    :init (setq markdown-command "multimarkdown"))
+#+END_SRC
+** Evil
+ We want evil for navigation
+ #+BEGIN_SRC emacs-lisp
+ (use-package evil
+   :ensure t ;; install the evil package if not installed
+   :init ;; tweak evil's configuration before loading it
+   (setq evil-search-module 'evil-search)
+   (setq evil-ex-complete-emacs-commands nil)
+   (setq evil-vsplit-window-right t)
+   (setq evil-split-window-below t)
+   (setq evil-shift-round nil)
+   (setq evil-want-C-u-scroll t)
+   :config ;; tweak evil after loading it
+   (evil-mode)
+   )
+ #+END_SRC
+
+Make sure we have evil-surround support too.
+This lets operate on symbols that surround words, like emphasis or tags.
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-surround
+    :ensure t
+    :config
+    (global-evil-surround-mode 1))
+#+END_SRC
+** Helm
+ #+BEGIN_SRC emacs-lisp
+   (use-package helm
+       :ensure t
+       )
+ #+END_SRC
+
+This function looks potentially interesting.
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-org-rifle
+    :ensure t
+    )
+#+END_SRC
+** Dashboard
+ #+BEGIN_SRC emacs-lisp
+ (use-package dashboard
+     :ensure t
+     :config
+     (dashboard-setup-startup-hook))
+ #+END_SRC
+** Projectile
+ Projectile is a quick and easy project management package that "just works". We're
+ going to install it and make sure it's loaded immediately.
+
+ #+BEGIN_SRC emacs-lisp
+   (use-package projectile
+     :demand t)
+ #+END_SRC
+** Purpose
+
+This package confuses me a bit, but gonna try to figure it out.
+
+#+BEGIN_SRC emacs-lisp
+  ;(use-package window-purpose
+  ;  :ensure t)
+  ;(purpose-mode 1)
+  ;(setq purpose-mode-user-purposes
+  ;      '((term-mode . terminal)
+#+END_SRC
+** Window Management
+
+Winner mode allows us to undo and redo window config changes.
+
+By default this is bound to Ctrl-c Left and Ctrl-c Right
+
+#+BEGIN_SRC emacs-lisp
+  (use-package winner
+    :ensure nil
+    :defer 1
+    :config (winner-mode 1))
+#+END_SRC
+
+Quick function that allows us to split an already split frame at the root level.
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-split-root-window (size direction)
+    (split-window (frame-root-window)
+		  (and size (prefix-numeric-value size))
+		  direction))
+
+  (defun my-split-root-window-below (&optional size)
+    (interactive "P")0
+    (my-split-root-window size 'below))
+
+  (defun my-split-root-window-right (&optional size)
+    (interactive "P")
+    (my-split-root-window size 'right))
+
+  (defun my-split-root-window-dwim (&optional size)
+    (interactive "P")
+    ;; Are we currently in a vertical split?
+    (if (window-combined-p nil nil)
+	(my-split-root-window-right)
+      (my-split-root-window-below)))
+
+  (global-set-key (kbd "C-x 6") 'my-split-root-window-dwim)
+#+END_SRC
+
+** Magit
+
+This gives us version control
+
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure t)
+
+#+END_SRC
+* Theming
+We're going to use the leuven theme, found here:
+https://github.com/fniessen/emacs-leuven-theme
+
+#+BEGIN_SRC emacs-lisp
+  (use-package leuven-theme
+    :ensure t
+    :config
+    (setq leuven-scale-outline-headlines nil) 
+    (setq leuven-scale-org-agenda-structure nil)) 
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (load-theme 'leuven t)
+#+END_SRC
+* Navigation
+This is helpful. Rebind <Ctrl-a> so that it still takes us to the start of the line,
+but if we're already there, jump to the first non-whitespace character.
+
+#+BEGIN_SRC emacs-lisp
+  (global-set-key [remap move-beginning-of-line] #'me/beginning-of-line-dwim)
+
+  (defun me/beginning-of-line-dwim ()
+    "Move point to first non-whitespace character, or beginning of line."
+    (interactive "^")
+    (let ((origin (point)))
+      (beginning-of-line)
+      (and (= origin (point))
+	   (back-to-indentation))))
+#+END_SRC
+* Misc Functions
+** Drag and Drop files
+
+#+BEGIN_SRC emacs-lisp
+  (defun my\dnd-func (event)
+    (interactive "e")
+    (goto-char (nth 1 (event-start event)))
+    (x-focus-frame nil)
+    (let* ((payload (car (last event)))
+	   (type (car payload))
+	   (fname (cadr payload))
+	   (img-regexp "\\(png\\|jp[e]?g\\)\\>"))
+      (cond
+       ;; insert image link
+       ((and  (eq 'drag-n-drop (car event))
+	      (eq 'file type)
+	      (string-match img-regexp fname))
+	(insert (format "[[%s]]" fname))
+	(org-display-inline-images t t))
+       ;; insert image link with caption
+       ((and  (eq 'C-drag-n-drop (car event))
+	      (eq 'file type)
+	      (string-match img-regexp fname))
+	(insert "#+ATTR_ORG: :width 300\n")
+	(insert (concat  "#+CAPTION: " (read-input "Caption: ") "\n"))
+	(insert (format "[[%s]]" fname))
+	(org-display-inline-images t t))
+       ;; C-drag-n-drop to open a file
+       ((and  (eq 'C-drag-n-drop (car event))
+	      (eq 'file type))
+	(find-file fname))
+       ((and (eq 'M-drag-n-drop (car event))
+	     (eq 'file type))
+	(insert (format "[[attachfile:%s]]" fname)))
+       ;; regular drag and drop on file
+       ((eq 'file type)
+	(insert (format "[[%s]]\n" fname)))
+       (t
+	(error "I am not equipped for dnd on %s" payload)))))
+  (define-key org-mode-map (kbd "<drag-n-drop>") 'my\dnd-func)
+  (define-key org-mode-map (kbd "<C-drag-n-drop>") 'my\dnd-func)
+  (define-key org-mode-map (kbd "<M-drag-n-drop>") 'my\dnd-func)
+#+END_SRC
+* Keybindings
+
+#+BEGIN_SRC emacs-lisp
+  ;; Helm find-files dialog
+  (global-set-key (kbd "C-x C-f") #'helm-find-files)
+
+  ;; Definitely want easy access to recent files
+  (global-set-key (kbd "C-x C-r") #'helm-recentf)
+ 
+  ;; The helm buffer list is significantly better
+  (global-set-key (kbd "C-x b") #'helm-buffers-list)
+  
+  ;; Helm meta
+  (global-set-key (kbd "M-x") #'helm-M-x)
+  
+  ;; Helm bookmarks
+  (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+  
+  (helm-mode 1)
+#+END_SRC
