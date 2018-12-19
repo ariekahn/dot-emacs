@@ -16,6 +16,7 @@
   - [[#initialize-package-management][Initialize Package Management]]
   - [[#use-better-defaults][Use better defaults]]
   - [[#load-customel][load custom.el]]
+  - [[#mac-shell-support][Mac Shell Support]]
 - [[#packages][Packages]]
   - [[#org][Org]]
   - [[#toc-org][Toc-org]]
@@ -129,6 +130,14 @@ Instead, let's put them in =custom.el=, and load them separately here.
     (load custom-file))
 #+END_SRC
 
+** Mac Shell Support
+This loads our PATH and related variables from the shell on mac
+#+BEGIN_SRC emacs-lisp
+  (use-package exec-path-from-shell
+    :config
+    (when (memq window-system '(mac ns x))
+      (exec-path-from-shell-initialize)))
+#+END_SRC
 * Packages
 ** Org
 This is going to be a big one.
