@@ -185,9 +185,25 @@ This first one just shows a combined view of our scheduled and full todo list
 #+END_SRC
 
 Our setup for TODO items:
+
+First, set our possible states.
+- '!' logs a timestamp
+- '@' logs a timestamp with a note
+- '/!' logs a timestamp when /leaving/ a state, but only if new state doesn't log a timestamp
+#+BEGIN_SRC emacs-lisp
+  (setq org-todo-keywords
+    '((sequence "TODO(t!)" "WAIT(w@)" "IN-PROGRESS(p@)" "|" "DONE(d!)" "CANCELED(c@)")))
+#+END_SRC
+
+Additional configuration
 #+BEGIN_SRC emacs-lisp
   ;; Create a ‘CLOSED: [timestamp]’ line when we finish an item
   (setq org-log-done 'time)
+  ;; When we log multiple changes to the same item, only show the most recent timestamp
+  (setq org-agenda-skip-additional-timestamps-same-entry t)
+  ;; Don't clutter notes with the state changes.
+  ;; Instead, log them all into a LOGBOOK drawer
+  (setq org-log-into-drawer t)
 #+END_SRC 
 
 Enable bash code block support
