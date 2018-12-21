@@ -506,6 +506,9 @@ but if we're already there, jump to the first non-whitespace character.
   
   ;; Helm bookmarks
   (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+
+  ;; Magit access
+  (global-set-key (kbd "C-c m") #'magit)
   
   (helm-mode 1)
 #+END_SRC
