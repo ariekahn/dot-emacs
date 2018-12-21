@@ -177,11 +177,17 @@ We're going to add some custom views into org-agenda.
 
 This first one just shows a combined view of our scheduled and full todo list
 
+The second one gives us a list of tasks that are waiting.
+
 #+BEGIN_SRC emacs-lisp
   (setq org-agenda-custom-commands
 	'(("c" "Simple agenda view"
 	   ((agenda "")
-	    (alltodo "")))))
+	    (alltodo "")))
+	  ("w" "Waiting view"
+	   ((todo ""
+		  ((org-agenda-skip-function '(org-agenda-skip-subtree-if 'nottodo '("WAIT")))
+		   (org-agenda-overriding-header "Tasks waiting for something: ")))))))
 #+END_SRC
 
 Our setup for TODO items:
