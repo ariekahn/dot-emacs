@@ -155,6 +155,7 @@ This is going to be a big one.
   (global-set-key (kbd "C-c c") 'org-capture)
   (global-set-key (kbd "C-c a") 'org-agenda)
   (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c b") 'helm-org-in-buffer-headings)
   ;; Org-agenda
   (setq org-agenda-files (list
                       "~/Dropbox/org/weekly-plan.org"
