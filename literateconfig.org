@@ -30,6 +30,8 @@
   - [[#window-management][Window Management]]
   - [[#magit][Magit]]
 - [[#theming][Theming]]
+  - [[#leuven][Leuven]]
+  - [[#hl-line][hl-line]]
 - [[#navigation][Navigation]]
 - [[#misc-functions][Misc Functions]]
   - [[#drag-and-drop-files][Drag and Drop files]]
@@ -404,6 +406,7 @@ This gives us version control
 
 #+END_SRC
 * Theming
+** Leuven
 We're going to use the leuven theme, found here:
 https://github.com/fniessen/emacs-leuven-theme
 
@@ -417,6 +420,15 @@ https://github.com/fniessen/emacs-leuven-theme
 
 #+BEGIN_SRC emacs-lisp
   (load-theme 'leuven t)
+#+END_SRC
+** hl-line
+This lets us highlight the current line under the cursor
+#+BEGIN_SRC emacs-lisp
+  (use-package hl-line
+    :ensure nil
+    :demand t
+    :config
+    (global-hl-line-mode 1))
 #+END_SRC
 * Navigation
 This is helpful. Rebind <Ctrl-a> so that it still takes us to the start of the line,
