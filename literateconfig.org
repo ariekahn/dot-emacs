@@ -232,6 +232,17 @@ Org magit support
   (use-package orgit
     :ensure t)
 #+END_SRC
+
+Org Download support
+#+BEGIN_SRC emacs-lisp
+  (use-package org-download
+    :ensure t
+    :config
+    (setq org-download-image-dir "~/Dropbox/org/img")
+    (setq org-download-heading-lvl 2)
+    (setq org-download-screenshot-method "screencapture -i %s"))
+
+#+END_SRC
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
  we initialize org-mode so we get an up-to-date toc.
