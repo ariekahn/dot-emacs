@@ -243,6 +243,12 @@ Org Download support
     (setq org-download-screenshot-method "screencapture -i %s"))
 
 #+END_SRC
+
+Configure how org displays images
+#+BEGIN_SRC emacs-lisp
+  (setq org-image-actual-width 300)
+#+END_SRC
+
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
  we initialize org-mode so we get an up-to-date toc.
