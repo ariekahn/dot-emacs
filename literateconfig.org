@@ -409,6 +409,22 @@ This lets operate on symbols that surround words, like emphasis or tags.
     :config
     (global-evil-surround-mode 1))
 #+END_SRC
+
+Let's use evil-leader mode
+
+For now this is primarily for universal arguments.
+
+E.g. press "SPC u" as a substitute for "Ctrl-u"
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-leader
+    :ensure t
+    :config
+    (global-evil-leader-mode 1))
+
+  (evil-leader/set-leader "<SPC>")
+  (evil-leader/set-key
+    "u" 'universal-argument)
+#+END_SRC
 ** Helm
  #+BEGIN_SRC emacs-lisp
    (use-package helm
