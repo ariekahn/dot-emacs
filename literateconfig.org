@@ -615,6 +615,8 @@ but if we're already there, jump to the first non-whitespace character.
 
   ;; Magit access
   (global-set-key (kbd "C-c m") #'magit)
+  ;; Diff for the current file
+  (global-set-key (kbd "C-c d") #'magit-diff-buffer-file)
   
   (helm-mode 1)
 #+END_SRC
