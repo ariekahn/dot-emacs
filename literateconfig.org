@@ -151,6 +151,9 @@ This is going to be a big one.
    :pin org
    :defer t)
 
+  ;; Enable visual-line-mode (word wrapping) for org-mode 
+  (add-hook 'org-mode-hook 'visual-line-mode)
+
   ;; Ensure ELPA org is prioritized above built-in org.
   (require 'cl)
   (setq load-path (remove-if (lambda (x) (string-match-p "org$" x)) load-path))
