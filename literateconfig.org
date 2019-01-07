@@ -322,6 +322,23 @@ CLOSED: %U
 %?"
    )
 
+  ("w" "Work"
+   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+   "* %^{Title} :labnotebook:
+:PROPERTIES:
+:Date: %U
+:END:
+%?"
+   )
+
+  ("d" "Meeting (Dani)"
+   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+   "* Weekly Meeting with Dani :weeklymeeting:
+:PROPERTIES:
+:Date: %U
+:END:
+%?"
+   )
   ))
 #+END_SRC
 
