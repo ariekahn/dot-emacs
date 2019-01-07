@@ -262,64 +262,64 @@ Configure org-capture.
   ("tt" "TODO"
    entry (file "~/Dropbox/org/todo.org")
    "* TODO %^{TITLE}
-  :LOGBOOK:
-  - State \"TODO\"       from \"\"           %U
-  :END:
-   %?
-  "
+:LOGBOOK:
+- State \"TODO\"       from \"\"           %U
+:END:
+%?
+"
    )
 
   ;; DONE     (d) Done template
   ("td" "DONE      (d) Done"
    entry (file "todo.org")
    "* DONE %^{TITLE}
-  CLOSED: %U
-  :LOGBOOK:
-  - State \"DONE\"       from \"\"           %U
-  :END:
-   %?
-  "
+CLOSED: %U
+:LOGBOOK:
+- State \"DONE\"       from \"\"           %U
+:END:
+%?
+"
    )
 
   ;; Meeting Template
   ("m" "Meeting"
    entry (file+headline "~/Dropbox/org/talk-notes.org" "Meetings")
    "* %^{Title} %<%Y-%m-%d> %(org-set-tags) :meeting:
-  :PROPERTIES:
-  :Date: %^U
-  :Participants: %^{Participants}
-  :Title: %\\1
-  :END:
-  %i
-  ,** Meeting Notes
-  %?
-  ,** Takeaway
-  "
+:PROPERTIES:
+:Date: %^U
+:Participants: %^{Participants}
+:Title: %\\1
+:END:
+%i
+,** Meeting Notes
+%?
+,** Takeaway
+"
    )
 
   ("t" "Talk"
    entry (file+headline "~/Dropbox/org/talk-notes.org" "Talks")
    "* %^{Speaker} - %^{Title} %(org-set-tags)  :talk:
-  :PROPERTIES:
-  :Date: %^U
-  :Speaker: %\\1
-  :Title: %\\2
-  :Event: %^{Event|Lab Meeting|MindCORE|MINS}
-  :END:
-  %i
-  ,** Talk Notes
-  %?
-  ,** Takeaway
-  "
+:PROPERTIES:
+:Date: %^U
+:Speaker: %\\1
+:Title: %\\2
+:Event: %^{Event|Lab Meeting|MindCORE|MINS}
+:END:
+%i
+,** Talk Notes
+%?
+,** Takeaway
+"
    )
 
   ("j" "Journal"
    entry (file+olp+datetree "~/Dropbox/org/private.gpg" "Journal")
    "* %^{Title}
-  :PROPERTIES:
-  :Date: %^U
-  :END:
-  %?"
+:PROPERTIES:
+:Date: %^U
+:END:
+%?"
    )
 
   ))
