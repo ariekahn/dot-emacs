@@ -577,6 +577,40 @@ This gives us version control
 
 #+END_SRC
 * Theming
+** Fonts
+#+BEGIN_SRC emacs-lisp
+  ;; (set-face-attribute 'default nil :family "Iosevka" :height 130)
+  ;; (set-face-attribute 'fixed-pitch nil :family "Iosevka")
+  (set-face-attribute 'variable-pitch nil :family "Libre Baskerville" :height 130)
+#+END_SRC
+** Variable Pitch Mode
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'text-mode-hook
+               (lambda ()
+                (variable-pitch-mode 1)))
+
+  ;; Make sure that code blocks and tables use a fixed-ptich font
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+              (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
+              (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+              ;; This fixes indentation for variable-pitch-mode, as long as org-indent-mode is on
+              (set-face-attribute 'org-hide nil :inherit 'fixed-pitch)
+              ;; And a few other things to keep fixed-pitch
+              (set-face-attribute 'org-todo nil :inherit 'fixed-pitch)
+              (set-face-attribute 'org-done nil :inherit 'fixed-pitch)
+              (set-face-attribute 'org-meta-line nil :inherit 'fixed-pitch)
+              ;; Give these a clear visual separator like levels 1 and 2
+              (set-face-attribute 'org-level-3 nil :overline "#123555")
+              (set-face-attribute 'org-level-4 nil :overline "#123555")
+              (set-face-attribute 'org-level-5 nil :overline "#123555")
+              (set-face-attribute 'org-level-6 nil :overline "#123555")
+              (set-face-attribute 'org-level-7 nil :overline "#123555")
+              (set-face-attribute 'org-level-8 nil :overline "#123555")
+
+              ))
+#+END_SRC
 ** Leuven
 We're going to use the leuven theme, found here:
 https://github.com/fniessen/emacs-leuven-theme
