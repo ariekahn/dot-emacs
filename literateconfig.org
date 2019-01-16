@@ -295,6 +295,18 @@ Narrow/widen DWIM
 
   (global-set-key (kbd "C-x n") #'narrow-or-widen-dwim)
 #+END_SRC
+
+Better plain-list bullets
+
+This replaces both * and - symbols with a circular bullet
+#+begin_src emacs-lisp
+  (font-lock-add-keywords 'org-mode
+                          '(("^ +\\([-*]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\(-\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+end_src
 ** Org-capture
 Configure org-capture.
 
