@@ -147,9 +147,30 @@ This is going to be a big one.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
-   :ensure org-plus-contrib
-   :pin org
-   :defer t)
+    :ensure org-plus-contrib
+    :pin org
+    :defer t
+    :bind (("C-c a" . org-capture)
+           ("C-c a" . org-agenda)
+           ("C-c l" . org-store-link)
+           ("C-c b" . helm-org-in-buffer-headings))
+    :config
+    ;; Set where we look for refile targets
+    (setq org-refile-targets '((nil :maxlevel . 3)))
+    ;; Set how we display matches
+    (setq org-refile-use-outline-path nil)
+    (setq org-startup-indented t)
+    ;; Org-agenda
+    (setq org-agenda-files (list
+                            "~/Dropbox/org/research.org"
+                            "~/Dropbox/org/meetings-dani.org"
+                                          ;"~/Dropbox/org/courses.org"
+                            "~/Dropbox/org/todo.org"))
+    ;; org-agenda messes up window setups. Have it keep the same window.
+    (setq org-agenda-window-setup 'current-window)
+    ;; Indent based on header level
+    (setq org-indent-mode t)
+    )
 
   ;; Enable visual-line-mode (word wrapping) for org-mode 
   (add-hook 'org-mode-hook 'visual-line-mode)
@@ -157,21 +178,6 @@ This is going to be a big one.
   ;; Ensure ELPA org is prioritized above built-in org.
   (require 'cl)
   (setq load-path (remove-if (lambda (x) (string-match-p "org$" x)) load-path))
-
-  (global-set-key (kbd "C-c c") 'org-capture)
-  (global-set-key (kbd "C-c a") 'org-agenda)
-  (global-set-key (kbd "C-c l") 'org-store-link)
-  (global-set-key (kbd "C-c b") 'helm-org-in-buffer-headings)
-  ;; Org-agenda
-  (setq org-agenda-files (list
-                      "~/Dropbox/org/weekly-plan.org"
-                      "~/Dropbox/org/meetings-dani.org"
-                      "~/Dropbox/org/todo.org"))
-  ;; org-agenda messes up window setups. Have it keep the same window.
-  (setq org-agenda-window-setup 'current-window)
-
-  ;; Indent based on header level
-  (setq org-indent-mode t)
 #+END_SRC
 
 M-RET splits the current line by default. This gets really annoying after a while.
