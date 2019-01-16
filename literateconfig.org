@@ -260,7 +260,10 @@ Configure how org displays images
   (setq org-image-actual-width 300)
 #+END_SRC
 
+Prettier latex images
 #+BEGIN_SRC emacs-lisp
+  (setq org-latex-create-formula-image-program 'dvisvgm)
+#+END_SRC
 
 
 
