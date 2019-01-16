@@ -640,6 +640,8 @@ but if we're already there, jump to the first non-whitespace character.
 
   ;; Helm bookmarks
   (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+  ;; Helm imenu for navigation
+  (global-set-key (kbd "C-c i") #'helm-imenu)
 
   ;; Magit access
   (global-set-key (kbd "C-c m") #'magit)
