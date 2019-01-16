@@ -447,6 +447,36 @@ which is a fancy script around =helm-bibtex= where we possibly choose our biblio
 
   (use-package org-ref
     :ensure t)
+
+  ;; Make helm use the same note function as org-ref
+  (defun my/org-ref-notes-function (candidates)
+    (let ((key (helm-marked-candidates)))
+      (funcall org-ref-notes-function (car key))))
+
+  (helm-delete-action-from-source "Edit notes" helm-source-bibtex)
+  ;; Note that 7 is a magic number of the index where you want to insert the command. You may need to change yours.
+  (helm-add-action-to-source "Edit notes" 'my/org-ref-notes-function helm-source-bibtex 7)
+
+  ;; Add this at some point when I have a chance to fix the older notes
+  ;; (defcustom org-ref-note-title-format
+  ;;   "** TODO %y - %2a - %t
+  ;;  :PROPERTIES:
+  ;;   :Custom_ID: %k
+  ;;   :AUTHOR: %9a
+  ;;   :JOURNAL: %j
+  ;;   :YEAR: %y
+  ;;   :VOLUME: %v
+  ;;   :PAGES: %p
+  ;;   :DOI: %D
+  ;;   :URL: %U
+  ;;  :END:
+  ;; "
+  ;;   "String to format the title and properties drawer of a note.
+  ;; See the `org-ref-reftex-format-citation' docstring for the escape
+  ;; codes."
+  ;;   :type 'string
+  ;;   :group 'org-ref)
+
 #+END_SRC
 ** Markdown
 Obviously we want prettier support for markdown documents.
