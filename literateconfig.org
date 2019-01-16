@@ -260,94 +260,99 @@ Configure how org displays images
   (setq org-image-actual-width 300)
 #+END_SRC
 
+#+BEGIN_SRC emacs-lisp
+
+
+
+** Org-capture
 Configure org-capture.
 
-#+BEGIN_SRC emacs-lisp
-  (setq org-capture-templates
-  '(
-  ;; TODO     (t) Todo template
-  ("t" "Tasks")
-  ("tt" "TODO"
-   entry (file "~/Dropbox/org/todo.org")
-   "* TODO %^{TITLE}
-:LOGBOOK:
-- State \"TODO\"       from \"\"           %U
-:END:
-%?
-"
-   )
+#+BEGIN_SRC emacs-lisp :results output silent
+    (setq org-capture-templates
+    '(
+    ;; TODO     (t) Todo template
+    ("t" "Tasks")
+    ("tt" "TODO"
+     entry (file "~/Dropbox/org/todo.org")
+     "* TODO %^{TITLE}
+  :LOGBOOK:
+  - State \"TODO\"       from \"\"           %U
+  :END:
+  %?
+  "
+     )
 
-  ;; DONE     (d) Done template
-  ("td" "DONE      (d) Done"
-   entry (file "todo.org")
-   "* DONE %^{TITLE}
-CLOSED: %U
-:LOGBOOK:
-- State \"DONE\"       from \"\"           %U
-:END:
-%?
-"
-   )
+    ;; DONE     (d) Done template
+    ("td" "DONE      (d) Done"
+     entry (file "todo.org")
+     "* DONE %^{TITLE}
+  CLOSED: %U
+  :LOGBOOK:
+  - State \"DONE\"       from \"\"           %U
+  :END:
+  %?
+  "
+     )
 
-  ;; Meeting Template
-  ("m" "Meeting"
-   entry (file+headline "~/Dropbox/org/talk-notes.org" "Meetings")
-   "* %^{Title} %<%Y-%m-%d> %(org-set-tags) :meeting:
-:PROPERTIES:
-:Date: %^U
-:Participants: %^{Participants}
-:Title: %\\1
-:END:
-%i
-,** Meeting Notes
-%?
-,** Takeaway
-"
-   )
+    ;; Meeting Template
+    ("m" "Meeting"
+     entry (file+headline "~/Dropbox/org/research.org" "Meetings")
+     "* %^{Title} - %<%Y-%m-%d> :meeting:
+  :PROPERTIES:
+  :Date: %^U
+  :Participants: %^{Participants}
+  :Title: %\\1
+  :END:
+  %i
+  ,** Meeting Notes
+  %?
+  ,** Takeaway
+  "
+     )
 
-  ("t" "Talk"
-   entry (file+headline "~/Dropbox/org/talk-notes.org" "Talks")
-   "* %^{Speaker} - %^{Title} %(org-set-tags)  :talk:
-:PROPERTIES:
-:Date: %^U
-:Speaker: %\\1
-:Title: %\\2
-:Event: %^{Event|Lab Meeting|MindCORE|MINS}
-:END:
-%i
-,** Talk Notes
-%?
-,** Takeaway
-"
-   )
+    ("k" "Talk"
+     entry (file+headline "~/Dropbox/org/research.org" "Talks")
+     "* %^{Speaker} - %^{Title} :talk: 
+  :PROPERTIES:
+  :Date: %^U
+  :Speaker: %\\1
+  :Title: %\\2
+  :Event: %^{Event|Lab Meeting|MindCORE|MINS}
+  :END:
+  %i
+  ,** Talk Notes
+  %?
+  ,** Takeaway
+  "
+     )
 
-  ("j" "Journal"
-   entry (file+olp+datetree "~/Dropbox/org/private.gpg" "Journal")
-   "* %^{Title}
-:PROPERTIES:
-:Date: %^U
-:END:
-%?"
-   )
+    ("j" "Journal"
+     entry (file+olp+datetree "~/Dropbox/org/private.gpg" "Journal")
+     "* %^{Title}
+  :PROPERTIES:
+  :Date: %^U
+  :END:
+  %?"
+     )
 
-  ("w" "Work"
-   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
-   "* %^{Title} :labnotebook:
-:PROPERTIES:
-:Date: %U
-:END:
-%?"
-   )
+    ("w" "Work"
+     entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+     "* %^{Title} :labnotebook:
+  :PROPERTIES:
+  :Date: %U
+  :END:
+  %?"
+     )
 
-  ("d" "Meeting (Dani)"
-   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
-   "* Weekly Meeting with Dani :weeklymeeting:
-:PROPERTIES:
-:Date: %U
-:END:
-%?"
-   )
-  ))
+    ("d" "Meeting (Dani)"
+     entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+     "* Weekly Meeting with Dani :weeklymeeting:
+  :PROPERTIES:
+  :Date: %U
+  :END:
+  %?"
+     )
+    ))
 #+END_SRC
 
 ** Toc-org
