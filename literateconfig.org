@@ -379,8 +379,8 @@ which is a fancy script around =helm-bibtex= where we possibly choose our biblio
 
   ;; For helm
   (setq bibtex-completion-bibliography "/Users/ari/Dropbox/Mendeley/library.bib"
-	bibtex-completion-library-path "/Users/ari/Dropbox/Papers"
-	bibtex-completion-notes-path "/Users/ari/Dropbox/org/notes.org")
+        bibtex-completion-library-path "/Users/ari/Dropbox/Papers"
+        bibtex-completion-notes-path "/Users/ari/Dropbox/org/notes.org")
 
   ;; Tell it to use the field Mendeley is populating
   (setq bibtex-completion-pdf-field "file")
@@ -629,13 +629,13 @@ but if we're already there, jump to the first non-whitespace character.
 
   ;; Definitely want easy access to recent files
   (global-set-key (kbd "C-x C-r") #'helm-recentf)
- 
+
   ;; The helm buffer list is significantly better
   (global-set-key (kbd "C-x b") #'helm-buffers-list)
-  
+
   ;; Helm meta
   (global-set-key (kbd "M-x") #'helm-M-x)
-  
+
   ;; Helm bookmarks
   (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
 
@@ -643,6 +643,6 @@ but if we're already there, jump to the first non-whitespace character.
   (global-set-key (kbd "C-c m") #'magit)
   ;; Diff for the current file
   (global-set-key (kbd "C-c d") #'magit-diff-buffer-file)
-  
+
   (helm-mode 1)
 #+END_SRC
