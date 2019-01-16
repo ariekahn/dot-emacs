@@ -633,9 +633,7 @@ https://github.com/fniessen/emacs-leuven-theme
     :config
     (setq leuven-scale-outline-headlines nil) 
     (setq leuven-scale-org-agenda-structure nil)) 
-#+END_SRC
 
-#+BEGIN_SRC emacs-lisp
   (load-theme 'leuven t)
 #+END_SRC
 ** hl-line
@@ -646,6 +644,13 @@ This lets us highlight the current line under the cursor
     :demand t
     :config
     (global-hl-line-mode 1))
+#+END_SRC
+** poet
+Trying this for a pretty variable-pitch mode
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package poet-theme
+  ;;   :ensure t)
+  ;; (load-theme 'poet t)
 #+END_SRC
 * Navigation
 This is helpful. Rebind <Ctrl-a> so that it still takes us to the start of the line,
