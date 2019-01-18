@@ -307,6 +307,14 @@ This replaces both * and - symbols with a circular bullet
                           '(("^ *\\(-\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 #+end_src
+
+Interact with OSX Menubar
+- See https://github.com/koddo/org-clock-statusbar-app
+- Alternate version here: https://github.com/jordonbiondo/osx-org-clock-menubar
+#+begin_src emacs-lisp
+  (add-hook 'org-clock-in-hook (lambda () (call-process "/usr/bin/osascript" nil 0 nil "-e" (concat "tell application \"org-clock-statusbar\" to clock in \"" (replace-regexp-in-string "\"" "\\\\\"" org-clock-current-task) "\""))))
+  (add-hook 'org-clock-out-hook (lambda () (call-process "/usr/bin/osascript" nil 0 nil "-e" "tell application \"org-clock-statusbar\" to clock out")))
+#+end_src
 ** Org-capture
 Configure org-capture.
 
