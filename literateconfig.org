@@ -397,6 +397,14 @@ Configure org-capture.
      )
     ))
 #+END_SRC
+** Org-ql
+Org Query Language
+
+This provides an easy way to search through org files, and operate on them or show reduced views
+#+begin_src emacs-lisp
+  (use-package org-ql
+    :load-path "/Users/ari/.emacs.d/lisp/org-ql")
+#+end_src
 
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
