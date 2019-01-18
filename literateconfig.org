@@ -464,6 +464,21 @@ which is a fancy script around =helm-bibtex= where we possibly choose our biblio
   (use-package org-ref
     :ensure t)
 
+  (defun org-ref-reftex-get-bib-field (field entry &optional format)
+    "Get FIELD from a bibtex ENTRY in optional FORMAT.
+    Similar to `reftex-get-bib-field', but removes enclosing braces
+    and quotes in FIELD in the bibtex ENTRY."
+    (let ((result))
+      (setq result (reftex-get-bib-field field entry format))
+      (if (string= field "title")
+          (setq result (my/remove-bibtex-braces result)))
+      (when (and (not (string= result "")) (string= "{" (substring result 0 1)))
+        (setq result (substring result 1 -1)))
+      (when (and (not (string= result "")) (string= "\"" (substring result 0 1)))
+        (setq result (substring result 1 -1)))
+      result))
+
+
   ;; Make helm use the same note function as org-ref
   (defun my/org-ref-notes-function (candidates)
     (let ((key (helm-marked-candidates)))
