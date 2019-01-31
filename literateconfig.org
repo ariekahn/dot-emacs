@@ -418,6 +418,12 @@ This provides an easy way to search through org files, and operate on them or sh
     :load-path "/Users/ari/.emacs.d/lisp/org-ql")
 #+end_src
 
+** Org-pomodoro
+This allows us to use a pomodoro timer when clocking in/out
+#+begin_src emacs-lisp
+  (use-package org-pomodoro
+    :ensure t)
+#+end_src
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
  we initialize org-mode so we get an up-to-date toc.
