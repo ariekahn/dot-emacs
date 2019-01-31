@@ -170,6 +170,8 @@ This is going to be a big one.
     (setq org-agenda-window-setup 'current-window)
     ;; Indent based on header level
     (setq org-indent-mode t)
+    ;; Use globally unique IDs when linking
+    (setq org-id-link-to-org-use-id t)
     )
 
   ;; Enable visual-line-mode (word wrapping) for org-mode 
