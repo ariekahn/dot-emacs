@@ -256,8 +256,10 @@ Org Download support
 #+END_SRC
 
 Configure how org displays images
+
+Putting this value in a list makes it a fallback, if we don't manually specify it
 #+BEGIN_SRC emacs-lisp
-  (setq org-image-actual-width 300)
+  (setq org-image-actual-width '(300))
 #+END_SRC
 
 Prettier latex images
