@@ -339,8 +339,8 @@ Configure org-capture.
     (setq org-capture-templates
     '(
     ;; TODO     (t) Todo template
-    ("t" "Tasks")
-    ("tt" "TODO"
+    ;; ("t" "Tasks")
+    ("t" "TODO"
      entry (file "~/Dropbox/org/todo.org")
      "* TODO %^{TITLE}
   :LOGBOOK:
@@ -350,17 +350,17 @@ Configure org-capture.
   "
      )
 
-    ;; DONE     (d) Done template
-    ("td" "DONE      (d) Done"
-     entry (file "todo.org")
-     "* DONE %^{TITLE}
-  CLOSED: %U
-  :LOGBOOK:
-  - State \"DONE\"       from \"\"           %U
-  :END:
-  %?
-  "
-     )
+  ;;   ;; DONE     (d) Done template
+  ;;   ("td" "DONE      (d) Done"
+  ;;    entry (file "todo.org")
+  ;;    "* DONE %^{TITLE}
+  ;; CLOSED: %U
+  ;; :LOGBOOK:
+  ;; - State \"DONE\"       from \"\"           %U
+  ;; :END:
+  ;; %?
+  ;; "
+  ;;    )
 
     ;; Meeting Template
     ("m" "Meeting"
