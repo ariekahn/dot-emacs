@@ -435,7 +435,14 @@ This provides an easy way to search through org files, and operate on them or sh
 This allows us to use a pomodoro timer when clocking in/out
 #+begin_src emacs-lisp
   (use-package org-pomodoro
-    :ensure t)
+    :ensure t
+    :commands (org-pomodoro)
+    :config
+    (add-hook 'org-pomodoro-finished-hook (lambda () (message-box "Timer up!")))
+    (add-hook 'org-pomodoro-finished-hook (lambda ()
+                                          (ns-do-applescript
+                                           "display notification \"Timer up!\""))))
+
 #+end_src
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
