@@ -487,6 +487,10 @@ which is a fancy script around =helm-bibtex= where we possibly choose our biblio
   (use-package org-ref
     :ensure t)
 
+  (defun my/remove-bibtex-braces (entry)
+    "Replace all double curly braces in a bibtex entry"
+    (replace-regexp-in-string "\\(?:{{\\|}}\\)" "" entry))
+
   (defun org-ref-reftex-get-bib-field (field entry &optional format)
     "Get FIELD from a bibtex ENTRY in optional FORMAT.
     Similar to `reftex-get-bib-field', but removes enclosing braces
