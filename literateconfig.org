@@ -461,13 +461,13 @@ By default, <C-c ]> is bound to org-ref-helm-insert-cite-link,
 which is a fancy script around =helm-bibtex= where we possibly choose our bibliography
 
 #+BEGIN_SRC emacs-lisp
-  (setq reftex-default-bibliography '("/Users/ari/Dropbox/Mendeley/library.bib"))
-  (setq org-ref-default-bibliography '("/Users/ari/Dropbox/Mendeley/library.bib")
+  (setq reftex-default-bibliography '("/Users/ari/Dropbox/Zotero/library.bib"))
+  (setq org-ref-default-bibliography '("/Users/ari/Dropbox/Zotero/library.bib")
         org-ref-pdf-directory "/Users/ari/Dropbox/Papers/"
         org-ref-bibliography-notes "/Users/ari/Dropbox/org/notes.org")
 
   ;; For helm
-  (setq bibtex-completion-bibliography "/Users/ari/Dropbox/Mendeley/library.bib"
+  (setq bibtex-completion-bibliography "/Users/ari/Dropbox/Zotero/library.bib"
         bibtex-completion-library-path "/Users/ari/Dropbox/Papers"
         bibtex-completion-notes-path "/Users/ari/Dropbox/org/notes.org")
 
