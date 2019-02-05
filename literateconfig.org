@@ -187,8 +187,11 @@ This is going to be a big one.
     (setq org-agenda-files (list
                             "~/Dropbox/org/research.org"
                             "~/Dropbox/org/meetings-dani.org"
+                            "~/Dropbox/org/projects/proj-mturk-chris.org"
                                           ;"~/Dropbox/org/courses.org"
                             "~/Dropbox/org/todo.org"))
+    (setq org-enforce-todo-dependencies t)
+    (setq org-agenda-dim-blocked-tasks t)
     ;; org-agenda messes up window setups. Have it keep the same window.
     (setq org-agenda-window-setup 'current-window)
     ;; Indent based on header level
