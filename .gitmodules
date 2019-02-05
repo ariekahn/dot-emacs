@@ -1,0 +1,6 @@
+[submodule "lisp/org-ql"]
+	path = lisp/org-ql
+	url = https://github.com/alphapapa/org-ql
+[submodule "lisp/org-sidebar"]
+	path = lisp/org-sidebar
+	url = https://github.com/alphapapa/org-sidebar
