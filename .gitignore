@@ -5,3 +5,7 @@ auto-save-list
 recentf
 literateconfig.el
 eshell
+abbrev_defs
+bookmarks
+url/
+.org-id-locations
