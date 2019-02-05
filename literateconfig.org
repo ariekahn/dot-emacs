@@ -428,10 +428,20 @@ Org Query Language
 
 This provides an easy way to search through org files, and operate on them or show reduced views
 #+begin_src emacs-lisp
-  (use-package org-ql
-    :load-path "/Users/ari/.emacs.d/lisp/org-ql")
+  ;; (use-package org-ql
+  ;;   :load-path "/Users/ari/.emacs.d/lisp/org-ql")
+  ;; (use-package org-ql-agenda
+  ;;   :load-path "/Users/ari/.emacs.d/lisp/org-ql")
 #+end_src
+** Org-sidebar
+Trying out a package that uses org-ql to create a sidebar overview
 
+https://github.com/alphapapa/org-sidebar
+
+#+begin_src emacs-lisp
+  ;; (use-package org-sidebar
+  ;;   :load-path "/Users/ari/.emacs.d/lisp/org-sidebar")
+#+end_src
 ** Org-pomodoro
 This allows us to use a pomodoro timer when clocking in/out
 #+begin_src emacs-lisp
@@ -684,6 +694,30 @@ This gives us version control
     :ensure t)
 
 #+END_SRC
+** Company
+This provides code-completion
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t)
+#+END_SRC
+** Tern
+Javascript support
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package tern
+  ;;   :ensure t)
+  ;; (setenv "PATH" (concat (getenv "PATH") "/Users/ari/.nvm/versions/node/v11.1.0/bin/"))
+  ;;(setq exec-path (append exec-path '("/Users/ari/.nvm/versions/node/v11.1.0/bin/")))
+#+END_SRC
+** Eglot
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t)
+#+end_src
+** org-super-agenda
+#+begin_src emacs-lisp
+  (use-package org-super-agenda
+    :ensure t)
+#+end_src
 * Theming
 ** Fonts
 #+BEGIN_SRC emacs-lisp
