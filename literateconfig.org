@@ -26,6 +26,7 @@
   - [[#org-ql][Org-ql]]
   - [[#org-sidebar][Org-sidebar]]
   - [[#org-pomodoro][Org-pomodoro]]
+  - [[#org-id][Org-id]]
   - [[#toc-org][Toc-org]]
   - [[#org-ref][org-ref]]
   - [[#markdown][Markdown]]
@@ -210,8 +211,6 @@ This is going to be a big one.
     (setq org-agenda-window-setup 'current-window)
     ;; Indent based on header level
     (setq org-indent-mode t)
-    ;; Use globally unique IDs when linking
-    (setq org-id-link-to-org-use-id t)
     )
 
   ;; Enable visual-line-mode (word wrapping) for org-mode 
@@ -483,6 +482,16 @@ This allows us to use a pomodoro timer when clocking in/out
                                            "display notification \"Timer up!\""))))
 
 #+end_src
+** Org-id
+We want unique IDs that don't depend on path. We can do this manually, but =org-id= automates the process by generating a globally unique ID when linking to a header.
+
+#+begin_src emacs-lisp
+  (use-package org-id
+    :ensure nil
+    :config
+    (setq org-id-link-to-org-use-id t))
+#+end_src
+
 ** Toc-org
  Let's set up =toc-org= after the org package. We also want to enable it when
  we initialize org-mode so we get an up-to-date toc.
