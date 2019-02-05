@@ -142,6 +142,17 @@ This loads our PATH and related variables from the shell on mac
       (exec-path-from-shell-initialize)))
 #+END_SRC
 * Packages
+** Alert
+Allows OSX alerts
+
+https://github.com/jwiegley/alert
+
+#+begin_src emacs-lisp
+  (use-package alert
+    :ensure t
+    :config
+    (setq alert-user-configuration (quote ((nil osx-notifier nil)))))
+#+end_src
 ** Dash
 #+begin_src emacs-lisp
   (use-package dash
