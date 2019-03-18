@@ -211,6 +211,8 @@ This is going to be a big one.
     (setq org-agenda-window-setup 'current-window)
     ;; Indent based on header level
     (setq org-indent-mode t)
+    ;; Don't show markers for bold, italics, etc
+    (setq org-hide-emphasis-markers t)
     )
 
   ;; Enable visual-line-mode (word wrapping) for org-mode 
