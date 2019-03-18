@@ -760,7 +760,9 @@ Javascript support
 #+BEGIN_SRC emacs-lisp
   ;; (set-face-attribute 'default nil :family "Iosevka" :height 130)
   ;; (set-face-attribute 'fixed-pitch nil :family "Iosevka")
-  (set-face-attribute 'variable-pitch nil :family "Libre Baskerville" :height 130)
+  ;; (set-face-attribute 'variable-pitch nil :family "Libre Baskerville" :height 130)
+  (set-face-attribute 'variable-pitch nil :family "Open Sans" :height 140)
+  (set-face-attribute 'fixed-pitch nil :family "Monospace" :height 130)
 #+END_SRC
 ** Variable Pitch Mode
 #+BEGIN_SRC emacs-lisp
