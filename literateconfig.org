@@ -413,7 +413,7 @@ Configure org-capture.
   :Date: %^U
   :Speaker: %\\1
   :Title: %\\2
-  :Event: %^{Event|Lab Meeting|MindCORE|MINS}
+  :Event: %^{Event|Lab Meeting|MindCORE|MINS|CNI}
   :END:
   %i
   ,** Talk Notes
