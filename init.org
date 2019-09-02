@@ -1,0 +1,1462 @@
+#+TITLE: Emacs Literate Configuration
+#+AUTHOR: Ari Kahn
+#+PROPERTY: header-args :tangle yes
+* Configuration
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+
+* Table of Contents :TOC_3_gh:
+- [[#configuration][Configuration]]
+- [[#credits][Credits]]
+- [[#meta][Meta]]
+- [[#documentation][Documentation]]
+    - [[#useful-examples][Useful Examples]]
+    - [[#package-configuration][Package configuration]]
+- [[#personal-information][Personal Information]]
+- [[#emacs-initialization][Emacs Initialization]]
+    - [[#initialize-package-management][Initialize Package Management]]
+    - [[#use-better-defaults][Use better defaults]]
+    - [[#load-customel][load custom.el]]
+    - [[#mac-shell-support][Mac Shell Support]]
+- [[#packages][Packages]]
+    - [[#alert][Alert]]
+    - [[#diminish][Diminish]]
+    - [[#dash][Dash]]
+    - [[#s][S]]
+    - [[#bookmark-plus][Bookmark-plus]]
+    - [[#org][Org]]
+    - [[#org-capture][Org-capture]]
+    - [[#org-ql][Org-ql]]
+    - [[#org-pretty-table][Org-pretty-table]]
+    - [[#org-sidebar][Org-sidebar]]
+    - [[#org-pomodoro][Org-pomodoro]]
+    - [[#org-id][Org-id]]
+    - [[#org-bullets][Org-bullets]]
+    - [[#toc-org][Toc-org]]
+    - [[#org-ref][org-ref]]
+    - [[#markdown][Markdown]]
+    - [[#evil][Evil]]
+    - [[#helm][Helm]]
+    - [[#dashboard][Dashboard]]
+    - [[#projectile][Projectile]]
+    - [[#purpose][Purpose]]
+    - [[#window-management][Window Management]]
+    - [[#magit][Magit]]
+    - [[#company][Company]]
+    - [[#tern][Tern]]
+    - [[#eglot][Eglot]]
+    - [[#org-super-agenda][org-super-agenda]]
+    - [[#ivy-swiper-and-counsel][Ivy, Swiper and Counsel]]
+    - [[#pinentry][Pinentry]]
+- [[#theming][Theming]]
+    - [[#fonts][Fonts]]
+    - [[#variable-pitch-mode][Variable Pitch Mode]]
+    - [[#leuven][Leuven]]
+    - [[#hl-line][hl-line]]
+    - [[#poet][poet]]
+- [[#navigation][Navigation]]
+- [[#misc-functions][Misc Functions]]
+    - [[#drag-and-drop-files][Drag and Drop files]]
+    - [[#export-headlines-to-pdf][Export headlines to pdf]]
+    - [[#new-headline-dwim][New Headline DWIM]]
+    - [[#datetree-jump][Datetree Jump]]
+- [[#keybindings][Keybindings]]
+
+* Credits
+Sources include:
+- https://github.com/freetonik/emacs-dotfiles/
+* Meta
+:PROPERTIES:
+:ID:       963E4D1E-8A44-46DE-93F0-5A6ADF8E7284
+:END:
+When first loading this configuration, =init.el= is a placeholder.
+
+#+begin_src emacs-lisp
+(setq gc-cons-threshold 100000000)
+#+end_src
+
+Tangle and compile this file on save automatically:
+
+#+begin_src emacs-lisp
+(defun tangle-init ()
+  "If the current buffer is 'init.org' the code-blocks are
+tangled and the tangled file is compiled."
+  (when (equal (buffer-file-name)
+               (expand-file-name (concat user-emacs-directory "init.org")))
+    ;; Avoid running hooks when tangling
+    (let ((prog-mode-hook nil))
+      (org-babel-tangle)
+      (byte-compile-file (concat user-emacs-directory "init.el")))))
+
+(add-hook 'after-save-hook 'tangle-init)
+#+end_src
+
+This helps get rid of functions might not be defined at runtime warnings. See https://github.com/jwiegley/use-package/issues/590
+
+#+begin_src emacs-lisp
+(eval-when-compile
+  (setq use-package-expand-minimally byte-compile-current-file))
+#+end_src
+* Documentation
+** Useful Examples
+https://github.com/gilbertw1/emacs-literate-starter
+
+https://github.com/angrybacon/dotemacs
+
+** Package configuration
+Basic example:
+
+ensure: Install the package if it doesn't exist yet
+pin: Specify a particular repository to use for a package
+* Personal Information
+:PROPERTIES:
+:ID:       2BC9EB1F-3FB6-4553-8562-24287726C798
+:END:
+#+begin_src emacs-lisp
+(setq user-full-name "Ari Kahn"
+      user-mail-address "ariekahn@gmail.com")
+#+end_src
+* Emacs Initialization      
+:PROPERTIES:
+:ID:       F4597FDE-2E22-4F5F-8AA2-015D4ED9D6D9
+:END:
+  Disable some byte-compile warnings that get annoying
+#+begin_src emacs-lisp
+;(setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+#+end_src
+
+** Initialize Package Management
+:PROPERTIES:
+:ID:       F0FADD4F-8D57-46C6-8F3F-0FBB5C1862CF
+:END:
+Next we are going to require =package.el= and add our additional package archives, 'melpa' and 'org'.
+Afterwards we need to initialize our packages and then ensure that =use-package= is installed, which
+we promptly install if it's missing. Finally we load =use-package= and tell it to always install any
+missing packages.
+
+Note that this entire block is wrapped in =eval-when-compile=. The effect of this is to perform all
+of the package initialization during compilation so that when byte compiled, all of this time consuming
+code is skipped. This can be done because the result of byte compiling =use-package= statements results
+in the macro being fully expanded at which point =use-package= isn't actually required any longer.
+
+Since the code is automatically compiled during runtime, if the configuration hasn't already been
+previously compiled manually then all of the package initialization will still take place at startup.
+
+#+begin_src emacs-lisp
+(require 'package)
+
+(unless (assoc-default "melpa" package-archives)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+(unless (assoc-default "org" package-archives)
+  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t))
+
+;; emacs 27+ runs package-initialize automatically
+;; (unless package--initialized (package-initialize))
+(package-initialize)
+#+end_src
+
+Install use-package
+
+#+begin_src emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile (require 'use-package))
+
+(setq use-package-always-ensure t)
+#+end_src
+
+Get rid of a byte-compiling error:
+
+#+begin_src emacs-lisp
+(require 'bind-key)
+#+end_src
+
+** Use better defaults
+:PROPERTIES:
+:ID:       7E5D9BF1-3C51-477B-885A-D4102E41E591
+:END:
+
+Some UI elements are rather invasive.
+
+#+begin_src emacs-lisp
+(when window-system
+  (blink-cursor-mode 0)                           ; Disable the cursor blinking
+  (scroll-bar-mode 0)                             ; Disable the scroll bar
+  (tool-bar-mode 0)                               ; Disable the tool bar
+  (tooltip-mode 0))                               ; Disable the tooltips
+#+end_src
+
+We don't want autosave files cluttering everything up.
+
+Instead, we'll have emacs store them in the =tmp= directory.
+
+#+begin_src emacs-lisp
+;; store all backup and autosave files in the tmp dir
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+;; And modify how emacs names and holds onto them
+(setq
+   backup-by-copying t      ; don't clobber symlinks
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+#+end_src
+
+** load custom.el
+:PROPERTIES:
+:ID:       C9581C4A-76B6-44C5-AC87-3C04E10C8BAF
+:END:
+
+We don't want customizations to clutter up =init.el=.
+Instead, let's put them in =custom.el=, and load them separately here.
+
+#+begin_src emacs-lisp
+(setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+#+end_src
+
+** Mac Shell Support
+:PROPERTIES:
+:ID:       0B13B4D4-302A-40CF-8232-1C716E70C3AC
+:END:
+This loads our PATH and related variables from the shell on mac
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :config
+    (when (memq window-system '(mac ns x))
+      (exec-path-from-shell-initialize)))
+#+end_src
+* Packages
+** Alert
+:PROPERTIES:
+:ID:       6C8B00D0-4FC9-4856-B60A-C0F1BDD66507
+:END:
+Allows OSX alerts
+
+https://github.com/jwiegley/alert
+
+#+begin_src emacs-lisp
+(use-package alert
+  :ensure t
+  :config
+  (setq alert-user-configuration (quote ((nil osx-notifier nil)))))
+#+end_src
+** Diminish
+:PROPERTIES:
+:ID:       F5A2DC5B-3DFD-42B2-B3FC-D4F93D7A79AE
+:END:
+
+The diminish package lets us clear up the modeline
+
+#+begin_src emacs-lisp
+(use-package diminish
+  :defer 1)
+#+end_src
+** Dash
+:PROPERTIES:
+:ID:       09A66670-E123-4155-A971-0C5916A24F0C
+:END:
+#+begin_src emacs-lisp
+(use-package dash
+  :ensure t)
+(use-package dash-functional
+  :ensure t)
+#+end_src
+** S
+:PROPERTIES:
+:ID:       1986229D-D8A5-4061-A081-83E5E8E54792
+:END:
+#+begin_src emacs-lisp
+(use-package s
+  :ensure t)
+#+end_src
+** Bookmark-plus
+:PROPERTIES:
+:ID:       CA7F1160-30BC-42D5-A5D1-F566A477A67D
+:END:
+#+begin_src emacs-lisp
+(let ((bookmarkplus-dir "~/.emacs.d/lisp/bookmark-plus/")
+              (emacswiki-base "https://www.emacswiki.org/emacs/download/")
+              (bookmark-files '("bookmark+.el" "bookmark+-mac.el" "bookmark+-bmu.el" "bookmark+-key.el" "bookmark+-lit.el" "bookmark+-1.el")))
+          (require 'url)
+          (add-to-list 'load-path bookmarkplus-dir)
+          (make-directory bookmarkplus-dir t)
+          (mapc (lambda (arg)
+                    (let ((local-file (concat bookmarkplus-dir arg)))
+                      (unless (file-exists-p local-file)
+                        (url-copy-file (concat emacswiki-base arg) local-file t))))
+                    bookmark-files)
+          (byte-recompile-directory bookmarkplus-dir 0)
+          (require 'bookmark+))
+#+end_src
+
+** Org
+:PROPERTIES:
+:ID:       E8DC8819-59CD-4D05-9376-2252C15101F9
+:END:
+This is going to be a big one.
+
+#+begin_src emacs-lisp
+(use-package org
+  :ensure org-plus-contrib
+  :pin org
+  :defer t
+  :bind (("C-c c" . org-capture)
+         ("C-c a" . org-agenda)
+         ("C-c l" . org-store-link)
+         ("C-c b" . helm-org-in-buffer-headings))
+  :config
+  ;; Set where we look for refile targets
+  (setq org-refile-targets '((nil :maxlevel . 3)))
+  ;; Set how we display matches
+  (setq org-refile-use-outline-path nil)
+  (setq org-startup-indented t)
+  ;; Org-agenda
+  (setq org-agenda-files (list
+                          "~/Dropbox/org/research.org"
+                          "~/Dropbox/org/meetings-dani.org"
+                          "~/Dropbox/org/projects/proj-mturk-chris.org"
+                                        ;"~/Dropbox/org/courses.org"
+                          "~/Dropbox/org/todo.org"))
+  (setq org-enforce-todo-dependencies t)
+  (setq org-agenda-dim-blocked-tasks t)
+  ;; org-agenda messes up window setups. Have it keep the same window.
+  (setq org-agenda-window-setup 'current-window)
+  ;; Indent based on header level
+  (setq org-indent-mode t)
+  ;; Don't show markers for bold, italics, etc
+  (setq org-hide-emphasis-markers t)
+  ;; Use pretty UTF8 characters
+  (setq org-pretty-entities t)
+  ;; Don't over-indent code blocks
+  (setq org-edit-src-content-indentation 0)
+  ;; Make list indentation more obvious
+  (setq org-list-indent-offset 2)
+  )
+
+;; Enable visual-line-mode (word wrapping) for org-mode 
+(add-hook 'org-mode-hook 'visual-line-mode)
+
+;; Ensure ELPA org is prioritized above built-in org.
+(require 'cl-lib)
+(setq load-path (cl-remove-if
+                 (lambda (x) (string-match-p "org$" x))
+                 load-path))
+                 
+;; Get rid of the mode line for org-indent                 
+(use-package org-indent
+  :ensure nil
+  :diminish)
+#+end_src
+
+M-RET splits the current line by default. This gets really annoying after a while.
+
+ #+begin_src emacs-lisp
+ (setq org-M-RET-may-split-line nil)
+ #+end_src
+
+We're going to add some custom views into org-agenda.
+
+This first one just shows a combined view of our scheduled and full todo list
+
+The second one gives us a list of tasks that are waiting.
+
+#+begin_src emacs-lisp
+(setq org-agenda-custom-commands
+      '(("c" "Simple agenda view"
+         ((agenda "")
+          (alltodo "")))
+        ("w" "Waiting view"
+         ((todo ""
+                ((org-agenda-skip-function '(or (org-agenda-skip-subtree-if 'nottodo '("WAIT"))
+                                                (org-agenda-blocked-p))
+                 (org-agenda-overriding-header "Tasks waiting for something: "))))))))
+#+end_src
+
+Our setup for TODO items:
+
+First, set our possible states.
+- '!' logs a timestamp
+- '@' logs a timestamp with a note
+- '/!' logs a timestamp when /leaving/ a state, but only if new state doesn't log a timestamp
+#+begin_src emacs-lisp
+(setq org-todo-keywords
+  '((sequence "TODO(t!)" "WAIT(w@)" "IN-PROGRESS(p@)" "|" "DONE(d!)" "CANCELED(c@)")))
+#+end_src
+
+Additional configuration
+#+begin_src emacs-lisp
+;; Create a ‘CLOSED: [timestamp]’ line when we finish an item
+(setq org-log-done 'time)
+;; When we log multiple changes to the same item, only show the most recent timestamp
+(setq org-agenda-skip-additional-timestamps-same-entry t)
+;; Don't clutter notes with the state changes.
+;; Instead, log them all into a LOGBOOK drawer
+(setq org-log-into-drawer t)
+#+end_src 
+
+Enable bash code block support
+#+begin_src emacs-lisp
+(org-babel-do-load-languages 'org-babel-load-languages
+                             '((shell . t)
+                               (R .t)))
+#+end_src
+
+Don't prompt me to execute code blocks
+#+begin_src emacs-lisp
+(setq org-confirm-babel-evaluate nil)
+#+end_src
+
+Org magit support
+#+begin_src emacs-lisp
+(use-package orgit
+  :ensure t)
+#+end_src
+
+Org Download support
+#+begin_src emacs-lisp
+(use-package org-download
+  :ensure t
+  :config
+  (setq org-download-image-dir "~/Dropbox/org/img")
+  (setq org-download-heading-lvl 2)
+  (setq org-download-screenshot-method "screencapture -i %s"))
+
+#+end_src
+
+Configure how org displays images
+
+Putting this value in a list makes it a fallback, if we don't manually specify it
+#+begin_src emacs-lisp
+(setq org-image-actual-width '(300))
+#+end_src
+
+Prettier latex images
+#+begin_src emacs-lisp
+(setq org-preview-latex-default-process 'dvisvgm)
+#+end_src
+
+Narrow/widen DWIM
+#+begin_src emacs-lisp
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning)
+                           (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ;; ((derived-mode-p 'latex-mode)
+        ;;  (LaTeX-narrow-to-environment))
+        (t (narrow-to-defun))))
+
+(global-set-key (kbd "C-x n") #'narrow-or-widen-dwim)
+#+end_src
+
+Better plain-list bullets
+
+This replaces both * and - symbols with a circular bullet
+#+begin_src emacs-lisp
+(font-lock-add-keywords 'org-mode
+                        '(("^ +\\([-*]\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+(font-lock-add-keywords 'org-mode
+                        '(("^ *\\(-\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+end_src
+
+Interact with OSX Menubar
+- See https://github.com/koddo/org-clock-statusbar-app
+- Alternate version here: https://github.com/jordonbiondo/osx-org-clock-menubar
+#+begin_src emacs-lisp
+(add-hook 'org-clock-in-hook (lambda () (call-process "/usr/bin/osascript" nil 0 nil "-e" (concat "tell application \"org-clock-statusbar\" to clock in \"" (replace-regexp-in-string "\"" "\\\\\"" org-clock-current-task) "\""))))
+(add-hook 'org-clock-out-hook (lambda () (call-process "/usr/bin/osascript" nil 0 nil "-e" "tell application \"org-clock-statusbar\" to clock out")))
+#+end_src
+** Org-capture
+:PROPERTIES:
+:ID:       500C60BB-5BD2-4156-9B11-AD2528FB928A
+:END:
+Configure org-capture.
+
+#+begin_src emacs-lisp :results output silent
+  (setq org-capture-templates
+  '(
+  ;; TODO     (t) Todo template
+  ;; ("t" "Tasks")
+  ("t" "TODO"
+   entry (file+headline "~/Dropbox/org/todo.org" "Unsorted")
+   "* TODO %^{TITLE}
+:LOGBOOK:
+- State \"TODO\"       from \"\"           %U
+:END:
+%?
+"
+   )
+
+;;   ;; DONE     (d) Done template
+;;   ("td" "DONE      (d) Done"
+;;    entry (file "todo.org")
+;;    "* DONE %^{TITLE}
+;; CLOSED: %U
+;; :LOGBOOK:
+;; - State \"DONE\"       from \"\"           %U
+;; :END:
+;; %?
+;; "
+;;    )
+
+  ;; Meeting Template
+  ("m" "Meeting"
+   entry (file+headline "~/Dropbox/org/research.org" "Meetings")
+   "* %^{Title} - %<%Y-%m-%d> :meeting:
+:PROPERTIES:
+:Date: %^U
+:Participants: %^{Participants}
+:Title: %\\1
+:END:
+%i
+,** Meeting Notes
+%?
+,** Takeaway
+"
+   )
+
+  ("k" "Talk"
+   entry (file+headline "~/Dropbox/org/research.org" "Talks")
+   "* %^{Speaker} - %^{Title} :talk: 
+:PROPERTIES:
+:Date: %^U
+:Speaker: %\\1
+:Title: %\\2
+:Event: %^{Event|Lab Meeting|MindCORE|MINS|CNI}
+:END:
+%i
+%?
+,** Summary
+"
+   )
+
+  ("j" "Journal"
+   entry (file+olp+datetree "~/Dropbox/org/private.gpg" "Journal")
+   "* %^{Title}
+:PROPERTIES:
+:Date: %^U
+:END:
+%?"
+   )
+
+  ("w" "Work"
+   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+   "* %^{Title} :labnotebook:
+:PROPERTIES:
+:Date: %U
+:END:
+%?
+"
+   )
+
+  ("d" "Meeting (Dani)"
+   entry (file+olp+datetree "~/Dropbox/org/research.org" "Notebook")
+   "* Weekly Meeting with Dani :weeklymeeting:
+:PROPERTIES:
+:Date: %U
+:END:
+%?"
+   )
+  ))
+#+end_src
+** Org-ql
+:PROPERTIES:
+:ID:       AC233051-2B2E-4239-A2C2-E82FD969D704
+:END:
+Org Query Language
+
+This provides an easy way to search through org files, and operate on them or show reduced views
+#+begin_src emacs-lisp
+;; (use-package org-ql
+;;   :load-path "/Users/ari/.emacs.d/lisp/org-ql")
+;; (use-package org-ql-agenda
+;;   :load-path "/Users/ari/.emacs.d/lisp/org-ql")
+#+end_src
+** Org-pretty-table
+:PROPERTIES:
+:ID:       9016DDB5-E9E9-4FD5-8F49-4FDDE2204092
+:END:
+
+This gives
+#+begin_src emacs-lisp
+;  (use-package org-pretty-table
+;    :load-path "/Users/ari/.emacs.d/lisp/org-pretty-table"
+;    :config (global-org-pretty-table-mode))
+#+end_src
+
+** Org-sidebar
+:PROPERTIES:
+:ID:       D33A0959-41F6-4BB9-B354-5896B1DEA921
+:END:
+Trying out a package that uses org-ql to create a sidebar overview
+
+https://github.com/alphapapa/org-sidebar
+
+#+begin_src emacs-lisp
+;; (use-package org-sidebar
+;;   :load-path "/Users/ari/.emacs.d/lisp/org-sidebar")
+#+end_src
+** Org-pomodoro
+:PROPERTIES:
+:ID:       E8E8BF4F-068F-4762-856F-BC9A23C79F70
+:END:
+This allows us to use a pomodoro timer when clocking in/out
+#+begin_src emacs-lisp
+(use-package org-pomodoro
+  :ensure t
+  :commands (org-pomodoro)
+  :config
+  (add-hook 'org-pomodoro-finished-hook (lambda () (message-box "Timer up!"))))
+  ;; (add-hook 'org-pomodoro-finished-hook (lambda ()
+  ;;                                       (ns-do-applescript
+  ;;                                        "display notification \"Timer up!\""))))
+
+#+end_src
+
+** Org-id
+:PROPERTIES:
+:ID:       454EED20-18CE-43ED-9C4C-C24B613375A7
+:END:
+We want unique IDs that don't depend on path. We can do this manually, but =org-id= automates the process by generating a globally unique ID when linking to a header.
+
+#+begin_src emacs-lisp
+(use-package org-id
+  :ensure nil
+  :config
+  (setq org-id-link-to-org-use-id t))
+#+end_src
+
+** Org-bullets
+:PROPERTIES:
+:ID:       4BB0DCCB-4DB0-409A-BDD5-F682C3140F7A
+:END:
+=org-bullets= provides prettier UTF-8 bullets. See https://github.com/sabof/org-bullets
+
+#+begin_src emacs-lisp
+(use-package org-bullets
+    :hook (org-mode . org-bullets-mode))
+#+end_src
+
+** Toc-org
+:PROPERTIES:
+:ID:       A7E236C7-8807-41A4-A804-89DB660B093F
+:END:
+ Let's set up =toc-org= after the org package. We also want to enable it when
+ we initialize org-mode so we get an up-to-date toc.
+ #+begin_src emacs-lisp
+ (use-package toc-org
+   :after org
+   :ensure t
+   :hook (org-mode . toc-org-enable))
+ #+end_src
+
+** org-ref
+:PROPERTIES:
+:ID:       0361B08A-FA3E-4884-B8B6-926695F78E27
+:END:
+
+Basic usage: http://kitchingroup.cheme.cmu.edu/blog/2014/05/13/Using-org-ref-for-citations-and-references/
+
+helm-ref provides the backend that allows searching through and interfacint with a bibtex file.
+helm-ref is built on top of bibtex-completion.
+See https://github.com/tmalsburg/helm-bibtex
+
+Here we're using a library file that's generated by Mendeley, so if we want to add a PDF we should be doing it through mendeley.
+
+Note there are a couple main commands.
+By default, <C-c ]> is bound to org-ref-helm-insert-cite-link,
+which is a fancy script around =helm-bibtex= where we possibly choose our bibliography
+
+#+begin_src emacs-lisp
+(setq reftex-default-bibliography '("/Users/ari/Dropbox/Zotero/library.bib"))
+(setq org-ref-default-bibliography '("/Users/ari/Dropbox/Zotero/library.bib")
+      org-ref-pdf-directory "/Users/ari/Dropbox/Papers/"
+      org-ref-bibliography-notes "/Users/ari/Dropbox/org/notes.org")
+
+;; For helm
+(setq bibtex-completion-bibliography "/Users/ari/Dropbox/Zotero/library.bib"
+      bibtex-completion-library-path "/Users/ari/Dropbox/Papers"
+      bibtex-completion-notes-path "/Users/ari/Dropbox/org/notes.org")
+
+;; Tell it to use the field Mendeley is populating
+(setq bibtex-completion-pdf-field "file")
+;; open pdf with system pdf viewer (works on mac)
+;; (setq bibtex-completion-pdf-open-function
+;;   (lambda (fpath)
+;;     (start-process "open" "*open*" "open" fpath)))
+
+;; Set org-ref to use a function that can get the right field, in this case helm-bibtex
+(setq org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex)
+
+;; Specify the backend we want to use out of helm/ivy/reftex
+(setq org-ref-completion-library 'org-ref-helm-bibtex)
+
+(use-package org-ref
+  :ensure t)
+
+(defun my/remove-bibtex-braces (entry)
+  "Replace all double curly braces in a bibtex entry"
+  (replace-regexp-in-string "\\(?:{{\\|}}\\)" "" entry))
+
+(defun org-ref-reftex-get-bib-field (field entry &optional format)
+  "Get FIELD from a bibtex ENTRY in optional FORMAT.
+  Similar to `reftex-get-bib-field', but removes enclosing braces
+  and quotes in FIELD in the bibtex ENTRY."
+  (let ((result))
+    (setq result (reftex-get-bib-field field entry format))
+    (if (string= field "title")
+        (setq result (my/remove-bibtex-braces result)))
+    (when (and (not (string= result "")) (string= "{" (substring result 0 1)))
+      (setq result (substring result 1 -1)))
+    (when (and (not (string= result "")) (string= "\"" (substring result 0 1)))
+      (setq result (substring result 1 -1)))
+    result))
+
+
+;; Make helm use the same note function as org-ref
+(defun my/org-ref-notes-function (candidates)
+  (let ((key (helm-marked-candidates)))
+    (funcall org-ref-notes-function (car key))))
+
+(helm-delete-action-from-source "Edit notes" helm-source-bibtex)
+;; Note that 7 is a magic number of the index where you want to insert the command. You may need to change yours.
+(helm-add-action-to-source "Edit notes" 'my/org-ref-notes-function helm-source-bibtex 7)
+
+;; Add this at some point when I have a chance to fix the older notes
+;; (defcustom org-ref-note-title-format
+;;   "** TODO %y - %2a - %t
+;;  :PROPERTIES:
+;;   :Custom_ID: %k
+;;   :AUTHOR: %9a
+;;   :JOURNAL: %j
+;;   :YEAR: %y
+;;   :VOLUME: %v
+;;   :PAGES: %p
+;;   :DOI: %D
+;;   :URL: %U
+;;  :END:
+;; "
+;;   "String to format the title and properties drawer of a note.
+;; See the `org-ref-reftex-format-citation' docstring for the escape
+;; codes."
+;;   :type 'string
+;;   :group 'org-ref)
+
+#+end_src
+** Markdown
+:PROPERTIES:
+:ID:       51CEC5B0-D031-4297-8B8D-1B4F72E8280F
+:END:
+Obviously we want prettier support for markdown documents.
+
+#+begin_src emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode) ; Git-flavor
+	 ("\\.md\\'" . markdown-mode)
+	 ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
+#+end_src
+
+** Evil
+:PROPERTIES:
+:ID:       463FF057-490F-49B5-8FF5-41968BE61FB8
+:END:
+ We want evil for navigation
+ #+begin_src emacs-lisp
+ (use-package evil
+   :ensure t ;; install the evil package if not installed
+   :init ;; tweak evil's configuration before loading it
+   (setq evil-search-module 'evil-search)
+   (setq evil-ex-complete-emacs-commands nil)
+   (setq evil-vsplit-window-right t)
+   (setq evil-split-window-below t)
+   (setq evil-shift-round nil)
+   (setq evil-want-C-u-scroll t)
+   :config ;; tweak evil after loading it
+   (evil-mode)
+   )
+ #+end_src
+
+Make sure we have evil-surround support too.
+This lets operate on symbols that surround words, like emphasis or tags.
+#+begin_src emacs-lisp
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
+#+end_src
+
+Let's use evil-leader mode
+
+For now this is primarily for universal arguments.
+
+E.g. press "SPC u" as a substitute for "Ctrl-u"
+#+begin_src emacs-lisp
+(use-package evil-leader
+  :ensure t
+  :config
+  (global-evil-leader-mode 1))
+
+(evil-leader/set-leader "<SPC>")
+(evil-leader/set-key
+  "u" 'universal-argument)
+#+end_src
+** Helm
+:PROPERTIES:
+:ID:       601D6FF7-70DF-40FB-86F6-E1F40CAA51F4
+:END:
+ #+begin_src emacs-lisp
+(use-package helm
+  :ensure t
+  :diminish helm-mode
+  )
+ #+end_src
+
+This function looks potentially interesting.
+#+begin_src emacs-lisp
+(use-package helm-org-rifle
+  :ensure t
+  )
+#+end_src
+
+** Dashboard
+:PROPERTIES:
+:ID:       01FC48DE-D91E-4739-B290-0DADA07E1FC0
+:END:
+ #+begin_src emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+ #+end_src
+ 
+** Projectile
+:PROPERTIES:
+:ID:       21150BCF-2870-414C-91FB-1E4CE842C8E4
+:END:
+ Projectile is a quick and easy project management package that "just works". We're
+ going to install it and make sure it's loaded immediately.
+
+ #+begin_src emacs-lisp
+ ;(use-package projectile
+ ;  :demand t)
+ #+end_src
+ 
+** Purpose
+:PROPERTIES:
+:ID:       CFF63165-03E8-4409-80D4-91A329838F3B
+:END:
+
+This package confuses me a bit, but gonna try to figure it out.
+
+#+begin_src emacs-lisp
+;(use-package window-purpose
+;  :ensure t)
+;(purpose-mode 1)
+;(setq purpose-mode-user-purposes
+;      '((term-mode . terminal)
+#+end_src
+
+** Window Management
+:PROPERTIES:
+:ID:       4F888314-3931-4B1F-9E6A-AF45E1F0C587
+:END:
+
+Winner mode allows us to undo and redo window config changes.
+
+By default this is bound to Ctrl-c Left and Ctrl-c Right
+
+#+begin_src emacs-lisp
+  (use-package winner :ensure t :defer nil :config (winner-mode 1))
+#+end_src
+
+Quick function that allows us to split an already split frame at the root level.
+
+#+begin_src emacs-lisp
+(defun my-split-root-window (size direction)
+  (split-window (frame-root-window)
+		(and size (prefix-numeric-value size))
+		direction))
+
+(defun my-split-root-window-below (&optional size)
+  (interactive "P")0
+  (my-split-root-window size 'below))
+
+(defun my-split-root-window-right (&optional size)
+  (interactive "P")
+  (my-split-root-window size 'right))
+
+(defun my-split-root-window-dwim (&optional size)
+  (interactive "P")
+  ;; Are we currently in a vertical split?
+  (if (window-combined-p nil nil)
+      (my-split-root-window-right)
+    (my-split-root-window-below)))
+
+(global-set-key (kbd "C-x 6") 'my-split-root-window-dwim)
+#+end_src
+
+** Magit
+:PROPERTIES:
+:ID:       83EA0CA6-705C-4D3A-8C81-C6B6B4DB6164
+:END:
+
+This gives us version control
+
+#+begin_src emacs-lisp
+(use-package magit
+  :ensure t)
+
+#+end_src
+
+Navigate to projects with Cmd+Shift+P (thanks to reddit user and emacscast listener fritzgrabo).
+
+#+begin_src emacs-lisp
+;(setq magit-repository-directories
+;      '(("\~/Dropbox/org" . 3) ("\~/repos" . 4)))
+
+(defun magit-status-with-prefix-arg ()
+  "Call `magit-status` with a prefix."
+  (interactive)
+  (let ((current-prefix-arg '(4)))
+    (call-interactively #'magit-status)))
+
+(global-set-key (kbd "s-P") 'magit-status-with-prefix-arg)
+#+end_src
+** Company
+:PROPERTIES:
+:ID:       EDB8B8E9-619B-4C7E-AA5C-2BCB247D859F
+:END:
+This provides code-completion
+#+begin_src emacs-lisp
+(use-package company
+  :ensure t)
+#+end_src
+** Tern
+:PROPERTIES:
+:ID:       207E9BEF-0F37-4D5D-A21D-86855AC55354
+:END:
+Javascript support
+#+begin_src emacs-lisp
+;; (use-package tern
+;;   :ensure t)
+;; (setenv "PATH" (concat (getenv "PATH") "/Users/ari/.nvm/versions/node/v11.1.0/bin/"))
+;;(setq exec-path (append exec-path '("/Users/ari/.nvm/versions/node/v11.1.0/bin/")))
+#+end_src
+** Eglot
+:PROPERTIES:
+:ID:       E8877CDD-AFA7-46D9-8286-2E1BFC2E5664
+:END:
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure t)
+#+end_src
+** org-super-agenda
+:PROPERTIES:
+:ID:       546DCC50-7B18-4C9F-934F-23DF105983C4
+:END:
+#+begin_src emacs-lisp
+(use-package org-super-agenda
+  :ensure t
+  :config
+  (pinentry-start))
+#+end_src
+** Ivy, Swiper and Counsel
+   :PROPERTIES:
+   :ID:       2AA9A6BF-F177-4D1D-9186-1D983E26E674
+   :END:
+
+#+begin_src emacs-lisp
+(use-package ivy
+  :diminish ivy-mode
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq enable-recursive-minibuffers t)
+  (setq ivy-initial-inputs-alist nil)
+  (setq ivy-re-builders-alist
+      '((swiper . ivy--regex-plus)
+        (swiper-isearch . ivy--regex-plus)
+        (counsel-ag . ivy--regex-plus)
+        (t      . ivy--regex-fuzzy)))   ;; enable fuzzy searching everywhere except for Swiper and ag
+
+  (global-set-key (kbd "s-b") 'ivy-switch-buffer))
+
+(use-package swiper
+  :config
+  (global-set-key (kbd "s-f") 'swiper-isearch))
+
+(use-package counsel
+  :config
+  (global-set-key (kbd "M-x") 'counsel-M-x)
+  (global-set-key (kbd "s-y") 'counsel-yank-pop)
+  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+  (global-set-key (kbd "s-F") 'counsel-ag)
+  (global-set-key (kbd "s-p") 'counsel-git))
+;; When using git ls (via counsel-git), include unstaged files
+(setq counsel-git-cmd "git ls-files --full-name --exclude-standard --others --cached --")
+
+(use-package smex)
+(use-package flx)
+#+end_src
+** Pinentry
+:PROPERTIES:
+:ID:       F3E2955F-DB8D-42E5-A63C-82E28E1B8D8E
+:END:
+#+begin_src elisp
+(use-package pinentry
+  :ensure t)
+#+end_src
+* Theming
+** Fonts
+:PROPERTIES:
+:ID:       A68EE4F1-0A72-4CA6-8D96-C60C444C0021
+:END:
+#+begin_src emacs-lisp
+;; (set-face-attribute 'default nil :family "Iosevka" :height 130)
+;; (set-face-attribute 'fixed-pitch nil :family "Iosevka")
+;; (set-face-attribute 'variable-pitch nil :family "Libre Baskerville" :height 130)
+;; (set-face-attribute 'variable-pitch nil :family "Open Sans" :height 140)
+(set-face-attribute 'variable-pitch nil :family "EtBembo" :height 1.4)
+;; (set-face-attribute 'variable-pitch nil :family "Source Sans Pro" :height 170)
+(set-face-attribute 'fixed-pitch nil :family "Monospace" :height 0.8)
+
+#+end_src
+
+Give us some spacing between lines
+
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook
+          (lambda ()
+              (setq line-spacing 0.4)))
+#+end_src
+** Variable Pitch Mode
+:PROPERTIES:
+:ID:       56CD1227-0B3B-4B35-99DC-457C0566C185
+:END:
+#+begin_src emacs-lisp
+(add-hook 'text-mode-hook
+             (lambda ()
+              (variable-pitch-mode 1)))
+
+;; Make sure that code blocks and tables use a fixed-ptich font
+;; Note that we're specifying relative height (as floating point) so that S-+ and S-- scale headline sizes approriately
+(setq org-fontify-quote-and-verse-blocks t)
+(let* ((sans-serif `(:family "Source Sans Pro"))
+       (headline `(:weight regular :height 0.9 :overline "#123555"))
+       (block-meta `(:background "#FFFFE0" :foreground "#AAAAAA" :weight regular :height 0.9)))
+  (custom-theme-set-faces
+   'user
+   `(org-level-1 ((nil (,@headline ,@sans-serif))))
+   `(org-level-2 ((nil (,@headline ,@sans-serif))))
+   `(org-level-3 ((nil (,@headline ,@sans-serif))))
+   `(org-level-4 ((nil (,@headline ,@sans-serif))))
+   `(org-level-5 ((nil (,@headline ,@sans-serif))))
+   `(org-level-6 ((t (,@headline ,@sans-serif))))
+   `(org-level-7 ((t (,@headline ,@sans-serif))))
+   `(org-level-8 ((t (,@headline ,@sans-serif))))
+   `(org-level-9 ((t (,@headline ,@sans-serif))))
+   `(org-block ((t (:inherit 'fixed-pitch))))
+   `(org-block-begin-line ((t (,@block-meta ,@sans-serif :overline "#A7A6AA" :underline nil))))
+   `(org-block-end-line ((t (,@block-meta @,sans-serif :overline nil :underline "#A7A6AA"))))
+   `(org-special-keyword ((t (,@sans-serif :background nil :foreground "#99EE99" :weight regular :height 0.9))))
+   `(org-priority ((t (,@sans-serif :weight regular :height 0.9))))
+   `(org-code ((t (:inherit 'fixed-pitch))))
+   `(org-table ((t (:inherit 'fixed-pitch))))
+   `(org-table ((t (:inherit 'fixed-pitch))))
+   `(org-quote ((t (,@sans-serif :background "#F4F4F4" :foreground "black"))))
+   `(org-verbatim ((t (:foreground "#222222" :background "#E2E1E5"))))
+   ;; This fixes indentation for variable-pitch-mode, as long as org-indent-mode is on
+   `(org-hide ((t (:inherit 'fixed-pitch))))
+   ;; And a few other things to keep fixed-pitch
+   `(org-todo ((t (:inherit 'fixed-pitch))))
+   `(org-done ((t (:inherit 'fixed-pitch))))
+   `(org-meta-line ((t (:inherit 'fixed-pitch))))
+   `(fringe ((t (:background "#969696" :foreground "#969696"))))
+   ))
+(set-fringe-mode 20)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq org-todo-keyword-faces
+                  '(("WAIT" . (:inherit 'org-todo :weight "bold" :foreground "black" :background "yellow"))))))
+            ;; (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+            ;; (set-face-attribute 'org-block-begin-line nil :background "#FFFFE0"
+	    ;; 			:foreground "#AAAAAA" :overline "#A7A6AA" :underline nil
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-block-end-line nil :background "#FFFFE0"
+	    ;; 			:foreground "#AAAAAA" :overline nil :underline "#A7A6AA"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-special-keyword nil :background nil :foreground "#99EE99"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-priority nil :family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
+            ;; (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+            ;; (set-face-attribute 'org-verbatim nil :foreground "#222222" :background "#E2E1E5")
+            ;; ;; This fixes indentation for variable-pitch-mode, as long as org-indent-mode is on
+            ;; (set-face-attribute 'org-hide nil :inherit 'fixed-pitch)
+            ;; ;; And a few other things to keep fixed-pitch
+            ;; (set-face-attribute 'org-todo nil :inherit 'fixed-pitch)
+            ;; (set-face-attribute 'org-done nil :inherit 'fixed-pitch)
+            ;; (set-face-attribute 'org-meta-line nil :inherit 'fixed-pitch)
+            ;; ;; Give these a clear visual separator like levels 1 and 2
+            ;; (set-face-attribute 'org-level-1 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-2 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-3 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-4 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-5 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-6 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-7 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; (set-face-attribute 'org-level-8 nil :overline "#123555"
+	    ;; 			:family "Source Sans Pro" :weight 'regular :height 150)
+            ;; set custom faces for TODO status
+            ;(setq org-todo-keyword-faces
+					;     '(("WAIT" . (:weight "bold" :foreground "black" :background "yellow" :inherit 'org-todo :box (:line-width 1 :color "#D8ABA7")))))))
+#+end_src
+** Leuven
+:PROPERTIES:
+:ID:       F1115442-0CAF-4048-8EF7-68EDFDC55C2B
+:END:
+We're going to use the leuven theme, found here:
+https://github.com/fniessen/emacs-leuven-theme
+
+#+begin_src emacs-lisp
+(use-package leuven-theme
+  :ensure t
+  :config
+  (setq leuven-scale-outline-headlines nil) 
+  (setq leuven-scale-org-agenda-structure nil)) 
+
+(load-theme 'leuven t)
+#+end_src
+** hl-line
+:PROPERTIES:
+:ID:       9BD6575C-061D-45B2-989F-E533310D1B08
+:END:
+This lets us highlight the current line under the cursor
+#+begin_src emacs-lisp
+(use-package hl-line
+  :ensure nil
+  :demand t
+  :config
+  (global-hl-line-mode 1))
+#+end_src
+** poet
+:PROPERTIES:
+:ID:       BB43B911-A40F-4056-98F3-E0FFE12560E2
+:END:
+Trying this for a pretty variable-pitch mode
+#+begin_src emacs-lisp
+;; (use-package poet-theme
+;;   :ensure t)
+;; (load-theme 'poet t)
+#+end_src
+* Navigation
+:PROPERTIES:
+:ID:       74388860-1E5D-45A0-9162-7DFF6F3F6C68
+:END:
+This is helpful. Rebind <Ctrl-a> so that it still takes us to the start of the line,
+but if we're already there, jump to the first non-whitespace character.
+
+#+begin_src emacs-lisp
+(global-set-key [remap move-beginning-of-line] #'me/beginning-of-line-dwim)
+
+(defun me/beginning-of-line-dwim ()
+  "Move point to first non-whitespace character, or beginning of line."
+  (interactive "^")
+  (let ((origin (point)))
+    (beginning-of-line)
+    (and (= origin (point))
+	 (back-to-indentation))))
+#+end_src
+* Misc Functions
+** Drag and Drop files
+:PROPERTIES:
+:ID:       20785DE9-6B7B-4637-86DD-B2B9814E03ED
+:END:
+
+This is commented out for the moment until I figure out why I don't have =read-input= or what to replace it with
+#+begin_src emacs-lisp
+;; (defun my\dnd-func (event)
+;;   (interactive "e")
+;;   (goto-char (nth 1 (event-start event)))
+;;   (x-focus-frame nil)
+;;   (let* ((payload (car (last event)))
+;; 	 (type (car payload))
+;; 	 (fname (cadr payload))
+;; 	 (img-regexp "\\(png\\|jp[e]?g\\)\\>"))
+;;     (cond
+;;      ;; insert image link
+;;      ((and  (eq 'drag-n-drop (car event))
+;; 	    (eq 'file type)
+;; 	    (string-match img-regexp fname))
+;;       (insert (format "[[%s]]" fname))
+;;       (org-display-inline-images t t))
+;;      ;; insert image link with caption
+;;      ((and  (eq 'C-drag-n-drop (car event))
+;; 	    (eq 'file type)
+;; 	    (string-match img-regexp fname))
+;;       (insert "#+ATTR_ORG: :width 300\n")
+;;       (insert (concat  "#+CAPTION: " (read-input "Caption: ") "\n"))
+;;       (insert (format "[[%s]]" fname))
+;;       (org-display-inline-images t t))
+;;      ;; C-drag-n-drop to open a file
+;;      ((and  (eq 'C-drag-n-drop (car event))
+;; 	    (eq 'file type))
+;;       (find-file fname))
+;;      ((and (eq 'M-drag-n-drop (car event))
+;; 	   (eq 'file type))
+;;       (insert (format "[[attachfile:%s]]" fname)))
+;;      ;; regular drag and drop on file
+;;      ((eq 'file type)
+;;       (insert (format "[[%s]]\n" fname)))
+;;      (t
+;;       (error "I am not equipped for dnd on %s" payload)))))
+;; (define-key org-mode-map (kbd "<drag-n-drop>") 'my\dnd-func)
+;; (define-key org-mode-map (kbd "<C-drag-n-drop>") 'my\dnd-func)
+;; (define-key org-mode-map (kbd "<M-drag-n-drop>") 'my\dnd-func)
+#+end_src
+** Export headlines to pdf
+:PROPERTIES:
+:ID:       2A6E19AC-0BEF-44E2-BDF0-EB3112A1CE00
+:END:
+
+#+begin_src emacs-lisp
+;; export headlines to separate files
+;; http://emacs.stackexchange.com/questions/2259/how-to-export-top-level-headings-of-org-mode-buffer-to-separate-files
+(defun org-export-headlines-to-pdf ()
+  "Export all subtrees that are *not* tagged with :noexport: to
+separate files.
+
+Subtrees that do not have the :EXPORT_FILE_NAME: property set
+are exported to a filename derived from the headline text."
+  (interactive)
+  (save-buffer)
+  (let ((modifiedp (buffer-modified-p)))
+    (save-excursion
+      (goto-char (point-min))
+      (goto-char (re-search-forward "^*"))
+      (set-mark (line-beginning-position))
+      (goto-char (point-max))
+      (org-map-entries
+       (lambda ()
+         (let ((export-file (org-entry-get (point) "EXPORT_FILE_NAME")))
+           (unless export-file
+             (org-set-property
+              "EXPORT_FILE_NAME"
+              (replace-regexp-in-string " " "_" (nth 4 (org-heading-components)))))
+           (deactivate-mark)
+           (org-latex-export-to-pdf nil t)
+           (unless export-file (org-delete-property "EXPORT_FILE_NAME"))
+           (set-buffer-modified-p modifiedp)))
+       "-noexport" 'region-start-level))))
+#+end_src
+** New Headline DWIM
+:PROPERTIES:
+:ID:       86EA0CE8-6936-4ACB-9F78-CA4C19F8EFCE
+:END:
+#+begin_src emacs-lisp
+(defun sbr-org-insert-dwim (&optional arg)
+  "Insert another entry of the same type as the current
+entry. For example, if the point is on a list item, then add
+another list item of the same type, and if the point is on a
+checkbox list item, then add an empty checkbox item. If instead
+the point is in a heading, then add another heading. If the point 
+is in a TODO heading, then add another TODO heading (set to the 
+TODO state). 
+
+By default, the new entry is inserted below the current
+subtree/item. With a 'C-u' prefix, insert the entry above the
+current heading/item instead."
+  (interactive "P")
+  (when (eq major-mode 'org-mode)
+    (let ((org-special-ctrl-a/e t)
+          (below? (unless  (equal arg '(4)) '(4))))
+      ;; hack to ensure that the point is not after ellipses because
+      ;; that would mess up org-at-item-p etc.
+      (org-beginning-of-line)
+      (cond ((org-at-item-p) ;; at list item or checkbox
+             (let ((org-M-RET-may-split-line nil)
+                   (org-enable-sort-checkbox nil))
+               ;; hack to make item be inserted after the current one
+               ;; doesn't work if we are on an empty item line
+               (when below?
+                 (org-end-of-line))                     
+               (org-insert-item (org-at-item-checkbox-p))))
+            ((org-before-first-heading-p) ;; above first heading
+             (org-insert-heading))
+            (t ;; in some kind of heading
+             (org-back-to-heading)
+             (if (org-get-todo-state)
+                 ;; at TODO heading
+                 (org-insert-todo-heading t below?)
+               ;; at non-TODO heading 
+               (org-insert-heading below?)))))))
+
+(defun sbr-org-shift-return (&optional arg)
+  "If point is at a table, copy the table cell downward (i.e.,
+the usual effect of typing S-RET). Otherwise,  insert the same
+kind of heading or item as the current entry containing the
+point. "
+  (interactive "P")
+  (if (org-at-table-p)
+      (org-table-copy-down (prefix-numeric-value arg))
+    (sbr-org-insert-dwim arg)))
+
+#+end_src
+** Datetree Jump
+:PROPERTIES:
+:ID:       EFC4D7FF-F6FE-4F16-9130-2B27053DE4DD
+:END:
+These functions both come from [[https://emacs.stackexchange.com/questions/50253/how-to-jump-to-a-heading-in-a-date-tree][Stack Overflow]]
+
+#+begin_src emacs-lisp
+(defun datetree-dates ()
+  (let (dates
+        (day (string-to-number (format-time-string "%d")))
+        (month (string-to-number (format-time-string "%m")))
+        (year (string-to-number (format-time-string "%Y"))))
+    (dotimes (i 365)
+      (push (format-time-string "%F %A" (encode-time 1 1 0 (- day i) month year))
+            dates))
+    (nreverse dates)))
+
+(defun datetree-jump ()
+  (let ((point (point)))
+    (catch 'found
+      (goto-char (point-min))
+      (while (outline-next-heading)
+        (let* ((hl (org-element-at-point))
+               (title (org-element-property :raw-value hl)))
+          (when (member title (datetree-dates))
+            (org-show-context)
+            (setq point (point))
+            (throw 'found t)))))
+    (goto-char point)))
+#+end_src
+* Keybindings
+:PROPERTIES:
+:ID:       DD6CF1DA-F66F-454E-A759-B7B8822F1A73
+:END:
+
+Modifier Keys
+
+Emacs control is Ctrl. Emacs Super is Command. Emacs Meta is Alt.
+
+#+begin_src emacs-lisp
+(setq mac-right-command-modifier 'super)
+;; (setq mac-left-option-modifier 'meta)
+(setq mac-option-modifier 'meta)
+(setq mac-command-modifier 'super)
+#+end_src
+
+Add easy keybindings for adjusting font size
+
+#+begin_src emacs-lisp
+(bind-key "s-+" 'text-scale-increase)
+(bind-key "s-=" 'text-scale-increase)
+(bind-key "s--" 'text-scale-decrease)
+#+end_src
+
+We'll also bind =⌘-0= to reset font size
+
+#+begin_src emacs-lisp
+(defun zz/text-scale-reset ()
+  (interactive)
+  (text-scale-set 0))
+(bind-key "s-0" 'zz/text-scale-reset)
+#+end_src
+
+Right Alt (option) can be used to enter symbols like em dashes =—.=
+
+#+begin_src emacs-lisp
+(setq mac-right-option-modifier 'nil)
+#+end_src
+
+Basic things you should expect from macOS.
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "s-a") 'mark-whole-buffer)       ;; select all
+(global-set-key (kbd "s-s") 'save-buffer)             ;; save
+(global-set-key (kbd "s-S") 'write-file)              ;; save as
+(global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ;; quit
+(global-set-key (kbd "s-v") 'yank)                    ;; paste
+(global-set-key (kbd "s-c") 'kill-ring-save)          ;; copy
+
+(global-set-key (kbd "s-z") 'undo)
+#+end_src
+
+
+#+begin_src emacs-lisp
+;; Helm find-files dialog
+(global-set-key (kbd "C-x C-f") #'helm-find-files)
+
+;; Definitely want easy access to recent files
+(global-set-key (kbd "C-x C-r") #'helm-recentf)
+
+;; The helm buffer list is significantly better
+(global-set-key (kbd "C-x b") #'helm-buffers-list)
+
+;; Helm meta
+(global-set-key (kbd "M-x") #'helm-M-x)
+
+;; Helm bookmarks
+(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+;; Helm imenu for navigation
+(global-set-key (kbd "C-c i") #'helm-imenu)
+
+;; Magit access
+(global-set-key (kbd "C-c m") #'magit)
+;; Diff for the current file
+(global-set-key (kbd "C-c d") #'magit-diff-buffer-file)
+
+;; try this
+(global-set-key (kbd "C-c C-x TAB") #'org-pomodoro)
+
+;(global-set-key (kbd "<S-return>") #'org-insert-subheading)
+;; Make S-return insert a new heading below the current structure.
+;; Make C-return insert a new subheading (used more often)
+;; (define-key org-mode-map [(shift return)] 'org-insert-heading-respect-content)
+;; (define-key org-mode-map [(control return)] 'org-insert-subheading)
+
+(bind-keys :map org-mode-map ("<S-return>" . sbr-org-insert-dwim))
+
+(helm-mode 1)
+#+end_src
