@@ -836,6 +836,16 @@ E.g. press "SPC u" as a substitute for "Ctrl-u"
 (evil-leader/set-key
   "u" 'universal-argument)
 #+end_src
+
+We want to change 'word' definition for a few languages:
+#+begin_src emacs-lisp
+;; For python
+(add-hook 'python-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+;; For ruby
+(add-hook 'ruby-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+;; For Javascript
+(add-hook 'js2-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+#+end_src
 ** Helm
 :PROPERTIES:
 :ID:       601D6FF7-70DF-40FB-86F6-E1F40CAA51F4
