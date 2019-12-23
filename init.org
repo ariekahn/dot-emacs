@@ -444,6 +444,11 @@ Prettier latex images
 (setq org-preview-latex-default-process 'dvisvgm)
 #+end_src
 
+Latex export defaults
+#+begin_src emacs-lisp
+(setq org-latex-packages-alist '(("margin=1in" "geometry" nil)))
+#+end_src
+
 Narrow/widen DWIM
 #+begin_src emacs-lisp
 (defun narrow-or-widen-dwim (p)
